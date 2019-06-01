@@ -1,0 +1,45 @@
+import numpy as np
+from torch.nn import CrossEntropyLoss
+from torch.optim import SGD
+
+from models.combine_net import CombineNet
+from utils.learning_rate import adaptive_learning_rate
+from utils.transforms import (ComposeTransforms, RandomHorizontalFlip, RandomRotate, 
+                              RandomVerticalFlip, RandomSquaredCrop, ToTensor)
+
+
+class Configuration:
+    NUM_CLASSES = 2
+    BATCH_SIZE = 2
+    CROP_SIZE = 256
+    STRIDE = 0.2
+    NUMBER_OF_EPOCHS = 1
+    LEARNING_RATE = 1e-2 / np.sqrt(16 / 2)
+    FOLDER_WITH_IMAGE_DATA = "./data/"
+    OUTPUT = "ckpt"
+    OUTPUT_FOLDER = "vessels_segmentation"
+    
+    MODEL = "CombineNet"
+    CHECKPOINT = ""
+    LOSS = CrossEntropyLoss
+    OPTIMALIZER = SGD
+    VALIDATION_FREQUENCY = 5  # num epochs
+    CUDA = True
+    
+    MOMENTUM = 0.9
+    WEIGHT_DECAY = 1e-4
+    AUGMENTATION = ComposeTransforms([
+        RandomHorizontalFlip(),
+        ToTensor()
+    ])
+
+
+class DataProps:
+    MEAN = [0.54479471, 0.2145689,  0.07742358]
+    STD = [0.29776531, 0.13578865, 0.04884564]
+
+
+available_models = {
+    "CombineNet": CombineNet,
+    "DeepLabV3p": None
+}
