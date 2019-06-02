@@ -29,6 +29,8 @@ class Configuration:
     MOMENTUM = 0.9
     WEIGHT_DECAY = 1e-4
     AUGMENTATION = ComposeTransforms([
+        Normalize(DataProps.MEAN, DataProps.STD),
+        RandomRotate(1., std_dev=10),
         RandomHorizontalFlip(),
         ToTensor()
     ])

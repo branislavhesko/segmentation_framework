@@ -4,6 +4,18 @@ from skimage.transform import resize, rotate
 import torch
 
 
+class Normalize:
+    def __init__(self, means, stds):
+        self._means = means
+        self._stds = stds
+
+    def __call__(self, img, mask):
+        assert img.shape[2] == len(self._means)
+        img[:, :, 0] = (img[:, :, 0] - self._means[0]) / self._stds[0]
+        img[:, :, 1] = (img[:, :, 1] - self._means[1]) / self._stds[1]
+        img[:, :, 2] = (img[:, :, 2] - self._means[2]) / self._stds[2]
+        return img, mask
+
 class RandomHorizontalFlip:
 
     def __init__(self, p=0.5):
@@ -55,7 +67,7 @@ class RandomRotate:
             return img, mask
         else:
             # angle = np.random.randint(0, 180)
-            angle = np.random.normal(0, self._std_dev)  # normal distribution
+            angle = np.random.normal(0, self._std_dev / 3.)  # normal distribution
             return rotate(img, angle), rotate(mask, angle)
             
 

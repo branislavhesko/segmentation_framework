@@ -1,7 +1,7 @@
+from datetime import datetime
 import glob
 import os
 import sys
-from time import time
 
 import torch
 from torch.utils.data.dataloader import DataLoader
@@ -46,6 +46,8 @@ class TrainModel:
                 loss.backward()
                 self.optimizer.step()
             
+            print(self.average_meter)
+
             if epoch % self._config.VALIDATION_FREQUENCY == 0:
                 self.validate()
 
@@ -82,8 +84,12 @@ class TrainModel:
         self.loader_val = DataLoader(dataloader_val, batch_size=1, shuffle=False)
 
     def save_model(self):
-        pass
-
+        now = datetime.now()
+        now = now.strftime("_%m-%d-%Y_%H:%M:%S_")
+        filename = str(self.model) + now + str(self.average_meter) + ".pth"
+        torch.save(self.model.state_dict(), filename)
+        torch.save(self.optimizer.state_dict(), "opt_" + filename)
+        
     def load_model(self, path_ckpt):
         pass
 

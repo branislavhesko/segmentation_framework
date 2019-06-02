@@ -102,3 +102,6 @@ class CombineNet(nn.Module):
         #print(dec1.cpu().size())
 
         return self.merge(torch.cat([dec1, ppm5, ppm4, ppm3, ppm2, ppm1], 1))
+
+def __str__(self):
+    return "CombineNet"
