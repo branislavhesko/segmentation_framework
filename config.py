@@ -4,8 +4,19 @@ from torch.optim import SGD
 
 from models.combine_net import CombineNet
 from utils.learning_rate import adaptive_learning_rate
-from utils.transforms import (ComposeTransforms, RandomHorizontalFlip, RandomRotate, 
+from utils.transforms import (ComposeTransforms, Normalize, RandomHorizontalFlip, RandomRotate, 
                               RandomVerticalFlip, RandomSquaredCrop, ToTensor)
+
+
+class DataProps:
+    MEAN = [0.54479471, 0.2145689,  0.07742358]
+    STD = [0.29776531, 0.13578865, 0.04884564]
+
+
+available_models = {
+    "CombineNet": CombineNet,
+    "DeepLabV3p": None
+}
 
 
 class Configuration:
@@ -34,14 +45,3 @@ class Configuration:
         RandomHorizontalFlip(),
         ToTensor()
     ])
-
-
-class DataProps:
-    MEAN = [0.54479471, 0.2145689,  0.07742358]
-    STD = [0.29776531, 0.13578865, 0.04884564]
-
-
-available_models = {
-    "CombineNet": CombineNet,
-    "DeepLabV3p": None
-}

@@ -10,10 +10,10 @@ class Normalize:
         self._stds = stds
 
     def __call__(self, img, mask):
-        assert img.shape[2] == len(self._means)
-        img[:, :, 0] = (img[:, :, 0] - self._means[0]) / self._stds[0]
-        img[:, :, 1] = (img[:, :, 1] - self._means[1]) / self._stds[1]
-        img[:, :, 2] = (img[:, :, 2] - self._means[2]) / self._stds[2]
+        assert img.shape[0] == len(self._means)
+        img[0, :, :] = (img[0, :, :] - self._means[0]) / self._stds[0]
+        img[1, :, :] = (img[1, :, :] - self._means[1]) / self._stds[1]
+        img[2, :, :] = (img[2, :, :] - self._means[2]) / self._stds[2]
         return img, mask
 
 class RandomHorizontalFlip:
@@ -88,18 +88,12 @@ class ComposeTransforms:
             img, mask = transform(img, mask)
         
         return img, mask
-
-
-class Normalize:
-    def __init__(self, mean, std):
-        self._mean = mean
-        self._std = std
         
 
 class ToTensor:
 
     def __call__(self, img, mask):
-        return torch.from_numpy(img), torch.from_numpy(mask)
+        return torch.from_numpy(img.astype(np.float32)), torch.from_numpy(mask.astype(np.int64))
         
 
 

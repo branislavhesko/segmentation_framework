@@ -3,11 +3,11 @@ import numpy as np
 
 class StatsMeter:
 
-    def __init_(self, num_classes):
-        self._number_of_images_passed = 0
+    def __init__(self, num_classes):
+        self._number_of_images_passed = 1e-5
         self._sum_of_losses = 0
         self._correctly_predicted_pixels = 0
-        self._total_predicted_pixels = 0
+        self._total_predicted_pixels = 1e-5
         self._num_classes = num_classes
         self._ious = np.zeros(self._num_classes)
         self._dices = np.zeros(self._num_classes)
@@ -40,13 +40,17 @@ class StatsMeter:
         self._number_of_images_passed += 1
         self._sum_of_losses += loss
         self._correctly_predicted_pixels += np.sum(prediction == ground_truth)
-        self._total_predicted_pixels += prediction.shape[0] * prediction.shape[1]
-
-        for i in range(self._num_classes):
-            iou = np.bitwise_and(prediction == i, ground_truth == i) / np.bitwise_or(prediction == i, ground_truth == i)
-            self._ious[i] = ((self._ious[i] * (self._number_of_images_passed - 1)) + iou) / self._number_of_images_passed
+        self._total_predicted_pixels += prediction.shape[-1] * prediction.shape[-2]
+        for batch_num in range(prediction.shape[0]):
+            for class_num in range(self._num_classes):
+                iou = np.bitwise_and(prediction[batch_num, class_num, :, :] == class_num, ground_truth[
+                    batch_num, class_num, :, :] == class_num) / np.bitwise_or(prediction[
+                        batch_num, class_num, :, :] == class_num, ground_truth[
+                            batch_num, class_num, :, :] == class_num)
+                #TODO: finish
+                self._ious[class_num] = ((self._ious[class_num] * (self._number_of_images_passed - 1)) + iou) / self._number_of_images_passed
 
     def __str__(self):
-        desc = "NUM_CLASSES: {}, mean_loss: {}, accuracy: {}, mean_IOU: {}, mean_DICE: {}".format(
+        desc = "NUM_CLASSES:{}_mean_loss:{}_accuracy:{}_mean_IOU:{}_mean_DICE:{}".format(
             self._num_classes, self.mean_loss, self.accuracy, self.mean_iou, self.mean_dice)
         return desc

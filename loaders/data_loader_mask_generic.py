@@ -30,7 +30,7 @@ class DataLoaderCrop2D:
         img = img.transpose([2, 0, 1]) / 255.
         mask = cv2.imread(info.mask, cv2.IMREAD_GRAYSCALE)
         mask[mask > 0] = 1
-        data = (*self._transform(self._crop_image_and_mask(img.astype(np.float32), mask.astype(np.int64), info)), info.slice)
+        data = (*self._transform(*self._crop_image_and_mask(img, mask, info)), info.slice)
         return data
 
     @staticmethod

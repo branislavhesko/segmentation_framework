@@ -11,7 +11,7 @@ from tqdm import tqdm
 from config import available_models, Configuration
 from loaders.data_loader_mask_generic import DataLoaderCrop2D
 from models.combine_net import CombineNet
-from stats.training_stats_meter import StatsMeter
+from stats.stats_meter import StatsMeter
 
 
 class TrainModel:
@@ -23,12 +23,15 @@ class TrainModel:
         self.optimizer = None
         self.loader_val = None
         self.loader_train = None
-        self.average_meter = StatsMeter()
+        self.average_meter_train = StatsMeter(self._config.NUM_CLASSES)
+        self.average_meter_val = StatsMeter(self._config.NUM_CLASSES)
+
         self._initialize()
 
     def train(self):
         for epoch in tqdm(range(self._config.NUMBER_OF_EPOCHS)):
             self.model.train()
+            self.save_model()
             for data in self.loader_train:
                 img, mask, indices = data
                 self.optimizer.zero_grad()
@@ -44,9 +47,11 @@ class TrainModel:
 
                 loss = self.loss(output, mask)
                 loss.backward()
+                print(loss)
                 self.optimizer.step()
-            
-            print(self.average_meter)
+                self.average_meter_train.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
+
+            print(self.average_meter_train)
 
             if epoch % self._config.VALIDATION_FREQUENCY == 0:
                 self.validate()
@@ -76,22 +81,26 @@ class TrainModel:
         masks_val.sort()
         dataloader_train = DataLoaderCrop2D(img_files=imgs_train, mask_files=masks_train, 
                                            crop_size=(self._config.CROP_SIZE, self._config.CROP_SIZE), 
-                                           stride=self._config.STRIDE)
+                                           stride=self._config.STRIDE, transform=self._config.AUGMENTATION)
         dataloader_val = DataLoaderCrop2D(img_files=imgs_val, mask_files=masks_val, 
                                         crop_size=(self._config.CROP_SIZE, self._config.CROP_SIZE), 
                                         stride=self._config.STRIDE)
         self.loader_train = DataLoader(dataloader_train, batch_size=self._config.BATCH_SIZE, shuffle=True)
         self.loader_val = DataLoader(dataloader_val, batch_size=1, shuffle=False)
 
+        if not os.path.exists(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER)):
+            os.makedirs(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER))
+
     def save_model(self):
         now = datetime.now()
         now = now.strftime("_%m-%d-%Y_%H:%M:%S_")
-        filename = str(self.model) + now + str(self.average_meter) + ".pth"
-        torch.save(self.model.state_dict(), filename)
-        torch.save(self.optimizer.state_dict(), "opt_" + filename)
+        filename = str(self.model) + now + str(self.average_meter_val) + ".pth"
+        torch.save(self.model.state_dict(), os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, filename))
+        torch.save(self.optimizer.state_dict(), os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, "opt_" + filename))
         
     def load_model(self, path_ckpt):
-        pass
+        self.model.load_state_dict(torch.load(path_ckpt))
+        self.optimizer.load_state_dict(torch.load("opt_" + path_ckpt))
 
 
 if __name__ == "__main__":
