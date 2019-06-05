@@ -3,6 +3,8 @@ import glob
 import os
 import sys
 
+import cv2
+import numpy as np
 import torch
 from torch.utils.data.dataloader import DataLoader
 from torch.autograd import Variable
@@ -29,11 +31,12 @@ class TrainModel:
         self._initialize()
 
     def train(self):
-        for epoch in tqdm(range(self._config.NUMBER_OF_EPOCHS)):
+        for epoch in range(self._config.NUMBER_OF_EPOCHS):
             self.model.train()
             self.save_model()
-            for data in self.loader_train:
-                img, mask, indices = data
+            self.validate()
+            for data in tqdm(self.loader_train):
+                img, mask, indices, img = data
                 self.optimizer.zero_grad()
                 img = Variable(img)
                 mask = Variable(mask)
@@ -42,12 +45,10 @@ class TrainModel:
                     mask = mask.cuda()
 
                 output = self.model(img)
-
                 prediction = torch.argmax(output, dim=1)
 
                 loss = self.loss(output, mask)
                 loss.backward()
-                print(loss)
                 self.optimizer.step()
                 self.average_meter_train.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
 
@@ -58,6 +59,34 @@ class TrainModel:
 
     def validate(self):
         self.model.eval()
+        self.average_meter_val = StatsMeter(self._config.NUM_CLASSES)
+        opened_image = ""
+        for data in tqdm(self.loader_val):
+            img, mask, indices, img_index = data
+
+            if self._config.CUDA:
+                img = img.cuda()
+                mask = mask.cuda()
+
+            if opened_image != img_index[0]:
+                opened_image = cv2.imread(img_index[0], cv2.IMREAD_GRAYSCALE)
+                output_segmented = torch.zeros((self._config.NUM_CLASSES, opened_image.shape[0], opened_image.shape[1])).cuda()
+                count_map = torch.zeros(opened_image.shape).cuda()
+            
+            output = self.model(img)
+            prediction = torch.argmax(output, dim=1)
+            loss = self.loss(output, mask)
+
+            self.average_meter_val.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
+
+            output_segmented[:, indices[0]: indices[2], indices[1]: indices[3]] += output[0, :, :, :].data
+            count_map[indices[0]: indices[2], indices[1]: indices[3]] += 1
+
+
+
+
+
+
 
     def _initialize(self):
         self.model = available_models[self._config.MODEL](self._config.NUM_CLASSES)
@@ -84,8 +113,9 @@ class TrainModel:
                                            stride=self._config.STRIDE, transform=self._config.AUGMENTATION)
         dataloader_val = DataLoaderCrop2D(img_files=imgs_val, mask_files=masks_val, 
                                         crop_size=(self._config.CROP_SIZE, self._config.CROP_SIZE), 
-                                        stride=self._config.STRIDE)
-        self.loader_train = DataLoader(dataloader_train, batch_size=self._config.BATCH_SIZE, shuffle=True)
+                                        stride=self._config.STRIDE, transform=self._config.AUGMENTATION)
+        self.loader_train = DataLoader(dataloader_train, batch_size=self._config.BATCH_SIZE, shuffle=True, num_workers=4)
+        # TODO: currently only validation with batch_size 1 is supported
         self.loader_val = DataLoader(dataloader_val, batch_size=1, shuffle=False)
 
         if not os.path.exists(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER)):

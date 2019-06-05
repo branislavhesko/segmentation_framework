@@ -30,11 +30,15 @@ class StatsMeter:
     
     @property
     def mean_iou(self):
-        return np.mean(self._ious)
+        if self._number_of_images_passed == 0:
+            return 0
+        return np.mean(self._ious / self._number_of_images_passed)
 
     @property
     def mean_dice(self):
-        return np.mean(self._dices)
+        if self._number_of_images_passed == 0:
+            return 0
+        return np.mean(self._dices / self._number_of_images_passed)
 
     def update(self, prediction, ground_truth, loss):
         self._number_of_images_passed += 1
@@ -43,12 +47,17 @@ class StatsMeter:
         self._total_predicted_pixels += prediction.shape[-1] * prediction.shape[-2]
         for batch_num in range(prediction.shape[0]):
             for class_num in range(self._num_classes):
-                iou = np.bitwise_and(prediction[batch_num, class_num, :, :] == class_num, ground_truth[
-                    batch_num, class_num, :, :] == class_num) / np.bitwise_or(prediction[
-                        batch_num, class_num, :, :] == class_num, ground_truth[
-                            batch_num, class_num, :, :] == class_num)
-                #TODO: finish
-                self._ious[class_num] = ((self._ious[class_num] * (self._number_of_images_passed - 1)) + iou) / self._number_of_images_passed
+                iou = np.sum(np.bitwise_and(prediction[batch_num, :, :] == class_num, ground_truth[
+                    batch_num, :, :] == class_num)) / np.sum(np.bitwise_or(prediction[
+                        batch_num, :, :] == class_num, ground_truth[
+                            batch_num, :, :] == class_num))
+                dice = 2 * np.sum(np.bitwise_and(prediction[batch_num, :, :] == class_num, ground_truth[
+                    batch_num, :, :] == class_num)) / (np.sum(prediction[
+                        batch_num, :, :] == class_num) + np.sum(ground_truth[batch_num, :, :] == class_num))
+                if np.isnan(iou) or np.isnan(dice) or np.isinf(dice) or np.isinf(iou):
+                    continue
+                self._ious[class_num] += iou
+                self._dices[class_num] += dice
 
     def __str__(self):
         desc = "NUM_CLASSES:{}_mean_loss:{}_accuracy:{}_mean_IOU:{}_mean_DICE:{}".format(

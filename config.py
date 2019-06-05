@@ -21,8 +21,8 @@ available_models = {
 
 class Configuration:
     NUM_CLASSES = 2
-    BATCH_SIZE = 2
-    CROP_SIZE = 256
+    BATCH_SIZE = 1
+    CROP_SIZE = 512
     STRIDE = 0.2
     NUMBER_OF_EPOCHS = 1
     LEARNING_RATE = 1e-2 / np.sqrt(16 / 2)
@@ -45,3 +45,4 @@ class Configuration:
         RandomHorizontalFlip(),
         ToTensor()
     ])
+    PATH_TO_SAVED_SUBIMAGE_INFO = None  # FOLDER_WITH_IMAGE_DATA + "train/info.pkl"

@@ -1,9 +1,14 @@
 from collections import namedtuple
 from enum import auto, Enum
-from PIL import Image
-import numpy as np
+import os
+import pickle
 import sys
 from tqdm import tqdm
+
+import numpy as np
+from PIL import Image
+
+from config import Configuration
 
 
 class InfoEnum(Enum):
@@ -43,6 +48,17 @@ class SubImageInfoHolder:
                 self.info_dict[InfoEnum.INDEX].append(image_number)
                 self.info_dict[InfoEnum.NUMBER_OF_INDICES].append(len(indices))
                 self.info_dict[InfoEnum.SLICE_INDICES].append(index)
+        if Configuration.PATH_TO_SAVED_SUBIMAGE_INFO is not None:
+            self.save_info_dict(Configuration.PATH_TO_SAVED_SUBIMAGE_INFO)
+
+    def save_info_dict(self, filename):
+        file = open(filename, "wb")
+        pickle.dump(self.info_dict, file)
+        file.close()
+
+    def load_info_dict(self, filename):
+        file = open(filename, "rb")
+        self.info_dict = pickle.load(file)
 
     def __getitem__(self, index):
         return self.get_info_at_index(index)
