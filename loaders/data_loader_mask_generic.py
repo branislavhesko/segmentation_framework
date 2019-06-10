@@ -24,20 +24,18 @@ class DataLoaderCrop2D:
             self.sub_image_info_holder.load_info_dict(Configuration.PATH_TO_SAVED_SUBIMAGE_INFO)
         else:
             self.sub_image_info_holder.fill_info_dict()
+        print(self.sub_image_info_holder)
 
     def __len__(self):
         return len(self.sub_image_info_holder.info_dict[InfoEnum.INDEX])
 
     def __getitem__(self, index):
-        from time import time
-        start = time()
         info = self.sub_image_info_holder.get_info_at_index(index)
         img = cv2.imread(info.img, cv2.IMREAD_COLOR)
         img = img.transpose([2, 0, 1]) / 255.
         mask = cv2.imread(info.mask, cv2.IMREAD_GRAYSCALE)
         mask[mask > 0] = 1
-        data = (*self._transform(*self._crop_image_and_mask(img, mask, info)), info.slice, info.img)
-        print("LOAD TIME: {}".format(time() - start))
+        data = (*self._transform(*self._crop_image_and_mask(img, mask, info)), info.slice, info.img, info.mask)
         return data
 
     @staticmethod

@@ -25,6 +25,7 @@ class SubImageInfoHolder:
 
     def __init__(self, img_files, mask_files, crop_size, stride):
         self._img_files = img_files
+        self._stride = stride
         self._mask_files = mask_files
         assert len(self._img_files) == len(self._mask_files)
         self.image_loader = ImageLoader(crop_size, stride)
@@ -40,7 +41,11 @@ class SubImageInfoHolder:
         for image_number, (img, mask) in tqdm(enumerate(list(zip(self._img_files, self._mask_files)))):
             img_matrix = np.asarray(Image.open(img).convert("RGB"))
             mask_matrix = np.asarray(Image.open(mask).convert("L"))
-            self.image_loader.set_image_and_mask(img_matrix, mask_matrix)
+            if img_matrix.shape[0] > Configuration.STRIDE_LIMIT[0]:
+                stride = Configuration.STRIDE_LIMIT[1]
+            else:
+                stride = Configuration.STRIDE
+            self.image_loader.set_image_and_mask(img_matrix, mask_matrix, stride)
             indices = self.image_loader.get_indices()
             for index in indices:
                 self.info_dict[InfoEnum.FILE_NAME_IMG].append(img)
@@ -127,7 +132,9 @@ class ImageLoader:
                 self._indices.append(indices_reversed)
         return self._indices
 
-    def set_image_and_mask(self, image, mask):
+    def set_image_and_mask(self, image, mask, stride=None):
+        if stride is not None:
+            self._stride = stride
         self._image = image
         self._mask = mask
         assert self._image.shape[:2] == self._mask.shape

@@ -1,10 +1,15 @@
 from datetime import datetime
 import glob
 import os
+import shutil
 import sys
 
 import cv2
+import matplotlib
+matplotlib.use("Agg")
+from matplotlib import pyplot as plt
 import numpy as np
+from scipy.io import savemat
 import torch
 from torch.utils.data.dataloader import DataLoader
 from torch.autograd import Variable
@@ -14,7 +19,8 @@ from config import available_models, Configuration
 from loaders.data_loader_mask_generic import DataLoaderCrop2D
 from models.combine_net import CombineNet
 from stats.stats_meter import StatsMeter
-
+from utils.segmentation_vizualization import (
+    generate_palette, map_palette, show_segmentation_into_original_image, vizualize_segmentation)
 
 class TrainModel:
     
@@ -32,11 +38,8 @@ class TrainModel:
 
     def train(self):
         for epoch in range(self._config.NUMBER_OF_EPOCHS):
-            self.model.train()
-            self.save_model()
-            self.validate()
             for data in tqdm(self.loader_train):
-                img, mask, indices, img = data
+                img, mask, indices, img_path, mask_path = data
                 self.optimizer.zero_grad()
                 img = Variable(img)
                 mask = Variable(mask)
@@ -46,46 +49,60 @@ class TrainModel:
 
                 output = self.model(img)
                 prediction = torch.argmax(output, dim=1)
-
                 loss = self.loss(output, mask)
                 loss.backward()
                 self.optimizer.step()
                 self.average_meter_train.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
 
+                del output
+                del prediction
+
             print(self.average_meter_train)
+
 
             if epoch % self._config.VALIDATION_FREQUENCY == 0:
                 self.validate()
+                self.save_model()
 
-    def validate(self):
+
+    def validate(self, epoch_num=0):
+        path_to_save = os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, str(epoch_num) + "_epoch")
+        if not os.path.exists(path_to_save):
+            os.makedirs(path_to_save)
+            
         self.model.eval()
         self.average_meter_val = StatsMeter(self._config.NUM_CLASSES)
+        img_shape = None
         opened_image = ""
+        count_map = None
+        output_segmented = None
+
         for data in tqdm(self.loader_val):
-            img, mask, indices, img_index = data
+            img, mask, indices, img_path, mask_path = data
 
             if self._config.CUDA:
                 img = img.cuda()
                 mask = mask.cuda()
 
-            if opened_image != img_index[0]:
-                opened_image = cv2.imread(img_index[0], cv2.IMREAD_GRAYSCALE)
-                output_segmented = torch.zeros((self._config.NUM_CLASSES, opened_image.shape[0], opened_image.shape[1])).cuda()
-                count_map = torch.zeros(opened_image.shape).cuda()
+            if opened_image != img_path[0]:
+                if count_map is not None and output_segmented is not None:
+                    self._save_segmentation(
+                        output_segmented.cpu().numpy(), count_map.cpu().numpy(), 
+                        img_path[0], mask_path[0], path_to_save)
+                opened_image = img_path[0]
+                img_shape = cv2.imread(img_path[0], cv2.IMREAD_GRAYSCALE).shape
+                output_segmented = torch.zeros((self._config.NUM_CLASSES, img_shape[0], img_shape[1])).cuda()
+                count_map = torch.zeros(img_shape).cuda()
             
             output = self.model(img)
             prediction = torch.argmax(output, dim=1)
             loss = self.loss(output, mask)
 
+            # TODO: print val stats...
             self.average_meter_val.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
 
             output_segmented[:, indices[0]: indices[2], indices[1]: indices[3]] += output[0, :, :, :].data
             count_map[indices[0]: indices[2], indices[1]: indices[3]] += 1
-
-
-
-
-
 
 
     def _initialize(self):
@@ -113,14 +130,37 @@ class TrainModel:
                                            stride=self._config.STRIDE, transform=self._config.AUGMENTATION)
         dataloader_val = DataLoaderCrop2D(img_files=imgs_val, mask_files=masks_val, 
                                         crop_size=(self._config.CROP_SIZE, self._config.CROP_SIZE), 
-                                        stride=self._config.STRIDE, transform=self._config.AUGMENTATION)
+                                        stride=self._config.STRIDE, transform=self._config.VAL_AUGMENTATION)
         self.loader_train = DataLoader(dataloader_train, batch_size=self._config.BATCH_SIZE, shuffle=True, num_workers=4)
         # TODO: currently only validation with batch_size 1 is supported
         self.loader_val = DataLoader(dataloader_val, batch_size=1, shuffle=False)
 
         if not os.path.exists(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER)):
             os.makedirs(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER))
-
+        
+    def _save_segmentation(self, prediction, count_map, img_path, mask_path, name):
+        img_name = os.path.split(img_path)[1][:-4]
+        print(img_name)
+        prediction = prediction / count_map
+        gt = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+        img = cv2.imread(img_path, cv2.IMREAD_COLOR)
+        plt.subplot(1, 2, 1)
+        plt.imshow(prediction[0, :, :])
+        plt.subplot(1, 2, 2)
+        plt.imshow(prediction[1, :, :])
+        plt.savefig(os.path.join(name, img_name + "_maps.png"), bbox_inches="tight")
+        savemat(os.path.join(name, img_name + ".mat"), {"pred":prediction})
+        prediction = np.argmax(prediction, axis=0)
+        prediction_gt = vizualize_segmentation(np.array(gt > 0).astype(np.uint8), np.array(prediction > 0).astype(np.uint8))
+        cv2.imwrite(os.path.join(name, img_name + "gt_vs_pred.png"), prediction_gt)
+        cv2.imwrite(os.path.join(name, img_name + "_prediction.png"), map_palette(
+            prediction, generate_palette(self._config.NUM_CLASSES)))        
+        cv2.imwrite(os.path.join(name, img_name + "_gt.png"), map_palette(
+            gt, generate_palette(self._config.NUM_CLASSES))) 
+        cv2.imwrite(os.path.join(name, img_name + "_img_vs_pred.png"), 
+                show_segmentation_into_original_image(img, prediction))
+        shutil.copy(img_path, os.path.join(name, img_name + ".png"))
+        
     def save_model(self):
         now = datetime.now()
         now = now.strftime("_%m-%d-%Y_%H:%M:%S_")

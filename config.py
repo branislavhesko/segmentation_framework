@@ -24,6 +24,7 @@ class Configuration:
     BATCH_SIZE = 1
     CROP_SIZE = 512
     STRIDE = 0.2
+    STRIDE_LIMIT = (1000, 0.4)  # THIS PREVENTS DATASET HALTING
     NUMBER_OF_EPOCHS = 1
     LEARNING_RATE = 1e-2 / np.sqrt(16 / 2)
     FOLDER_WITH_IMAGE_DATA = "./data/"
@@ -34,7 +35,7 @@ class Configuration:
     CHECKPOINT = ""
     LOSS = CrossEntropyLoss
     OPTIMALIZER = SGD
-    VALIDATION_FREQUENCY = 5  # num epochs
+    VALIDATION_FREQUENCY = 2  # num epochs
     CUDA = True
     
     MOMENTUM = 0.9
@@ -43,6 +44,10 @@ class Configuration:
         Normalize(DataProps.MEAN, DataProps.STD),
         RandomRotate(1., std_dev=10),
         RandomHorizontalFlip(),
+        ToTensor()
+    ])
+    VAL_AUGMENTATION = ComposeTransforms([
+        Normalize(DataProps.MEAN, DataProps.STD),
         ToTensor()
     ])
     PATH_TO_SAVED_SUBIMAGE_INFO = None  # FOLDER_WITH_IMAGE_DATA + "train/info.pkl"
