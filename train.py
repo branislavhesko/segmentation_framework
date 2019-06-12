@@ -1,3 +1,4 @@
+from collections import namedtuple
 from datetime import datetime
 import glob
 import os
@@ -59,9 +60,8 @@ class TrainModel:
 
             print(self.average_meter_train)
 
-
             if epoch % self._config.VALIDATION_FREQUENCY == 0:
-                self.validate()
+                self.validate(epoch)
                 self.save_model()
 
 
@@ -73,7 +73,8 @@ class TrainModel:
         self.model.eval()
         self.average_meter_val = StatsMeter(self._config.NUM_CLASSES)
         img_shape = None
-        opened_image = ""
+        CurrentlyOpened = namedtuple("CurrentlyOpened", ["img", "mask"], verbose=False)
+        opened = CurrentlyOpened(None, None)
         count_map = None
         output_segmented = None
 
@@ -84,13 +85,13 @@ class TrainModel:
                 img = img.cuda()
                 mask = mask.cuda()
 
-            if opened_image != img_path[0]:
+            if opened.img != img_path[0]:
                 if count_map is not None and output_segmented is not None:
                     self._save_segmentation(
                         output_segmented.cpu().numpy(), count_map.cpu().numpy(), 
-                        img_path[0], mask_path[0], path_to_save)
-                opened_image = img_path[0]
-                img_shape = cv2.imread(img_path[0], cv2.IMREAD_GRAYSCALE).shape
+                        opened.img, opened.mask, path_to_save)
+                opened = CurrentlyOpened(img_path[0], mask_path[0])
+                img_shape = cv2.imread(opened.img, cv2.IMREAD_GRAYSCALE).shape
                 output_segmented = torch.zeros((self._config.NUM_CLASSES, img_shape[0], img_shape[1])).cuda()
                 count_map = torch.zeros(img_shape).cuda()
             
@@ -140,7 +141,6 @@ class TrainModel:
         
     def _save_segmentation(self, prediction, count_map, img_path, mask_path, name):
         img_name = os.path.split(img_path)[1][:-4]
-        print(img_name)
         prediction = prediction / count_map
         gt = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         img = cv2.imread(img_path, cv2.IMREAD_COLOR)

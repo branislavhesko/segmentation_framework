@@ -5,13 +5,12 @@ from torch.optim import SGD
 from models.combine_net import CombineNet
 from utils.learning_rate import adaptive_learning_rate
 from utils.transforms import (ComposeTransforms, Normalize, RandomHorizontalFlip, RandomRotate, 
-                              RandomVerticalFlip, RandomSquaredCrop, ToTensor)
+                              RandomVerticalFlip, RandomSquaredCrop, ToTensor, Transpose)
 
 
 class DataProps:
-    MEAN = [0.54479471, 0.2145689,  0.07742358]
-    STD = [0.29776531, 0.13578865, 0.04884564]
-
+    MEAN = [0.485, 0.456, 0.406]
+    STD = [0.229, 0.224, 0.225]
 
 available_models = {
     "CombineNet": CombineNet,
@@ -25,7 +24,7 @@ class Configuration:
     CROP_SIZE = 512
     STRIDE = 0.2
     STRIDE_LIMIT = (1000, 0.4)  # THIS PREVENTS DATASET HALTING
-    NUMBER_OF_EPOCHS = 1
+    NUMBER_OF_EPOCHS = 100
     LEARNING_RATE = 1e-2 / np.sqrt(16 / 2)
     FOLDER_WITH_IMAGE_DATA = "./data/"
     OUTPUT = "ckpt"
@@ -35,7 +34,7 @@ class Configuration:
     CHECKPOINT = ""
     LOSS = CrossEntropyLoss
     OPTIMALIZER = SGD
-    VALIDATION_FREQUENCY = 2  # num epochs
+    VALIDATION_FREQUENCY = 3  # num epochs
     CUDA = True
     
     MOMENTUM = 0.9
@@ -44,10 +43,12 @@ class Configuration:
         Normalize(DataProps.MEAN, DataProps.STD),
         RandomRotate(1., std_dev=10),
         RandomHorizontalFlip(),
+        Transpose(),
         ToTensor()
     ])
     VAL_AUGMENTATION = ComposeTransforms([
         Normalize(DataProps.MEAN, DataProps.STD),
+        Transpose(),
         ToTensor()
     ])
     PATH_TO_SAVED_SUBIMAGE_INFO = None  # FOLDER_WITH_IMAGE_DATA + "train/info.pkl"

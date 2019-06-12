@@ -6,7 +6,6 @@ import scipy.io as sio
 
 def vizualize_segmentation(img1, img2):
     result_img = np.zeros((*img1.shape, 3))
-    print(result_img.shape)
     intersetcion = cv2.bitwise_and(img1, img2)
     img1[intersetcion > 0] = 0
     img2[intersetcion > 0] = 0
@@ -58,11 +57,13 @@ def merge_images(img1, img2, mask):
 
     return img1 + img2
 
+
 def generate_palette(num_classes):
     palette = [(0, 0, 0)]
     for i in range(num_classes - 1):
         palette.append((i, num_classes // 2 + i // 2, 255 - i))
     return palette
+
 
 def map_palette(image, palette):
     img_colored = np.zeros((*image.shape, 3))

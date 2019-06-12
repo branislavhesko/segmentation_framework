@@ -31,8 +31,8 @@ class DataLoaderCrop2D:
 
     def __getitem__(self, index):
         info = self.sub_image_info_holder.get_info_at_index(index)
-        img = cv2.imread(info.img, cv2.IMREAD_COLOR)
-        img = img.transpose([2, 0, 1]) / 255.
+        img = np.array(Image.open(info.img))
+        img = img / 255.
         mask = cv2.imread(info.mask, cv2.IMREAD_GRAYSCALE)
         mask[mask > 0] = 1
         data = (*self._transform(*self._crop_image_and_mask(img, mask, info)), info.slice, info.img, info.mask)
@@ -42,10 +42,10 @@ class DataLoaderCrop2D:
     def _crop_image_and_mask(img, mask, info):
         slice = info.slice
         if len(img.shape) > 2: 
-            return (img[:, slice[0] : slice[2], slice[1]: slice[3]],
+            return (img[slice[0] : slice[2], slice[1]: slice[3], :],
                 mask[slice[0] : slice[2], slice[1]: slice[3]])
         else:
-            return (img[:, slice[0] : slice[2], slice[1]: slice[3]],
+            return (img[slice[0] : slice[2], slice[1]: slice[3]],
                 mask[slice[0] : slice[2], slice[1]: slice[3]])
 
 

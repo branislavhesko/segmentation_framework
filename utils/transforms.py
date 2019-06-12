@@ -1,7 +1,8 @@
 import numpy as np
 import cv2
-from skimage.transform import resize, rotate
+from skimage.transform import resize
 import torch
+from scipy.ndimage.interpolation import rotate
 
 
 class Normalize:
@@ -10,10 +11,10 @@ class Normalize:
         self._stds = stds
 
     def __call__(self, img, mask):
-        assert img.shape[0] == len(self._means)
-        img[0, :, :] = (img[0, :, :] - self._means[0]) / self._stds[0]
-        img[1, :, :] = (img[1, :, :] - self._means[1]) / self._stds[1]
-        img[2, :, :] = (img[2, :, :] - self._means[2]) / self._stds[2]
+        assert img.shape[2] == len(self._means)
+        img[:, :, 0] = (img[:, :, 0] - self._means[0]) / self._stds[0]
+        img[:, :, 1] = (img[:, :, 1] - self._means[1]) / self._stds[1]
+        img[:, :, 2] = (img[:, :, 2] - self._means[2]) / self._stds[2]
         return img, mask
 
 class RandomHorizontalFlip:
@@ -68,7 +69,7 @@ class RandomRotate:
         else:
             # angle = np.random.randint(0, 180)
             angle = np.random.normal(0, self._std_dev / 3.)  # normal distribution
-            return rotate(img, angle), rotate(mask, angle)
+            return rotate(img, angle, reshape=False), rotate(mask, angle, reshape=False)
             
 
 class Resize:
@@ -94,6 +95,15 @@ class ToTensor:
 
     def __call__(self, img, mask):
         return torch.from_numpy(img.astype(np.float32)), torch.from_numpy(mask.astype(np.int64))
+
+
+class Transpose:
+
+    def __call__(self, img, mask):
+        if len(img.shape) == 2:
+            img = img[np.newaxis, :, :]
+            return img, mask
+        return np.transpose(img, [2, 0, 1]), mask
         
 
 
