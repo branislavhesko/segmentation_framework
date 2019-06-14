@@ -57,9 +57,10 @@ class TrainModel:
 
                 del output
                 del prediction
-
+            print("\n" + "-" * 50 + "\n")
             print(self.average_meter_train)
-
+            print("\n" + "-" * 50 + "\n")
+            torch.cuda.empty_cache()
             if epoch % self._config.VALIDATION_FREQUENCY == 0:
                 self.validate(epoch)
                 self.save_model()
@@ -104,7 +105,11 @@ class TrainModel:
 
             output_segmented[:, indices[0]: indices[2], indices[1]: indices[3]] += output[0, :, :, :].data
             count_map[indices[0]: indices[2], indices[1]: indices[3]] += 1
-
+        del count_map, output_segmented
+        torch.cuda.empty_cache()
+        print("\n" + "-" * 50 + "\n")
+        print(self.average_meter_val)
+        print("\n" + "-" * 50 + "\n")
 
     def _initialize(self):
         self.model = available_models[self._config.MODEL](self._config.NUM_CLASSES)
@@ -168,12 +173,14 @@ class TrainModel:
         torch.save(self.model.state_dict(), os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, filename))
         torch.save(self.optimizer.state_dict(), os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, "opt_" + filename))
         
-    def load_model(self, path_ckpt):
+    def load_model(self, path_ckpt, opt_path_ckpt):
         self.model.load_state_dict(torch.load(path_ckpt))
-        self.optimizer.load_state_dict(torch.load("opt_" + path_ckpt))
+        self.optimizer.load_state_dict(torch.load(opt_path_ckpt))
+        print("Model loaded: {}".format(path_ckpt))
 
 
 if __name__ == "__main__":
     trainer = TrainModel(Configuration)
-
+    trainer.load_model(os.path.join(Configuration.OUTPUT, Configuration.OUTPUT_FOLDER, Configuration.CHECKPOINT),
+                       os.path.join(Configuration.OUTPUT, Configuration.OUTPUT_FOLDER, "opt_" + Configuration.CHECKPOINT))
     trainer.train()
