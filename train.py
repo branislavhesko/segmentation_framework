@@ -36,8 +36,10 @@ class TrainModel:
         self.average_meter_val = StatsMeter(self._config.NUM_CLASSES)
 
         self._initialize()
+        self._load_weights_if_available()
 
     def train(self):
+        self.model.train()
         for epoch in range(self._config.NUMBER_OF_EPOCHS):
             for data in tqdm(self.loader_train):
                 img, mask, indices, img_path, mask_path = data
@@ -55,16 +57,13 @@ class TrainModel:
                 self.optimizer.step()
                 self.average_meter_train.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
 
-                del output
-                del prediction
             print("\n" + "-" * 50 + "\n")
             print(self.average_meter_train)
             print("\n" + "-" * 50 + "\n")
-            torch.cuda.empty_cache()
             if epoch % self._config.VALIDATION_FREQUENCY == 0:
                 self.validate(epoch)
+                self.model.train()
                 self.save_model()
-
 
     def validate(self, epoch_num=0):
         path_to_save = os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, str(epoch_num) + "_epoch")
@@ -105,8 +104,9 @@ class TrainModel:
 
             output_segmented[:, indices[0]: indices[2], indices[1]: indices[3]] += output[0, :, :, :].data
             count_map[indices[0]: indices[2], indices[1]: indices[3]] += 1
-        del count_map, output_segmented
-        torch.cuda.empty_cache()
+        self._save_segmentation(
+            output_segmented.cpu().numpy(), count_map.cpu().numpy(),
+            opened.img, opened.mask, path_to_save)
         print("\n" + "-" * 50 + "\n")
         print(self.average_meter_val)
         print("\n" + "-" * 50 + "\n")
@@ -137,9 +137,9 @@ class TrainModel:
         dataloader_val = DataLoaderCrop2D(img_files=imgs_val, mask_files=masks_val, 
                                         crop_size=(self._config.CROP_SIZE, self._config.CROP_SIZE), 
                                         stride=self._config.STRIDE, transform=self._config.VAL_AUGMENTATION)
-        self.loader_train = DataLoader(dataloader_train, batch_size=self._config.BATCH_SIZE, shuffle=True, num_workers=4)
+        self.loader_train = DataLoader(dataloader_train, batch_size=self._config.BATCH_SIZE, shuffle=True, num_workers=0)
         # TODO: currently only validation with batch_size 1 is supported
-        self.loader_val = DataLoader(dataloader_val, batch_size=1, shuffle=False)
+        self.loader_val = DataLoader(dataloader_val, batch_size=1, shuffle=False, num_workers=0)
 
         if not os.path.exists(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER)):
             os.makedirs(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER))
@@ -161,15 +161,16 @@ class TrainModel:
         cv2.imwrite(os.path.join(name, img_name + "_prediction.png"), map_palette(
             prediction, generate_palette(self._config.NUM_CLASSES)))        
         cv2.imwrite(os.path.join(name, img_name + "_gt.png"), map_palette(
-            gt, generate_palette(self._config.NUM_CLASSES))) 
+            gt /255, generate_palette(self._config.NUM_CLASSES)))
         cv2.imwrite(os.path.join(name, img_name + "_img_vs_pred.png"), 
                 show_segmentation_into_original_image(img, prediction))
         shutil.copy(img_path, os.path.join(name, img_name + ".png"))
         
-    def save_model(self):
+    def save_model(self, epoch_number=0):
         now = datetime.now()
+        epoch_str = "_epoch{}_".format(epoch_number)
         now = now.strftime("_%m-%d-%Y_%H:%M:%S_")
-        filename = str(self.model) + now + str(self.average_meter_val) + ".pth"
+        filename = str(self.model) + epoch_str + now + str(self.average_meter_val) + ".pth"
         torch.save(self.model.state_dict(), os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, filename))
         torch.save(self.optimizer.state_dict(), os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, "opt_" + filename))
         
@@ -178,9 +179,13 @@ class TrainModel:
         self.optimizer.load_state_dict(torch.load(opt_path_ckpt))
         print("Model loaded: {}".format(path_ckpt))
 
+    def _load_weights_if_available(self):
+        if len(self._config.CHECKPOINT) > 0:
+            self.load_model(
+                os.path.join(Configuration.OUTPUT, Configuration.OUTPUT_FOLDER, Configuration.CHECKPOINT),
+                os.path.join(Configuration.OUTPUT, Configuration.OUTPUT_FOLDER, "opt_" + Configuration.CHECKPOINT))
+
 
 if __name__ == "__main__":
     trainer = TrainModel(Configuration)
-    trainer.load_model(os.path.join(Configuration.OUTPUT, Configuration.OUTPUT_FOLDER, Configuration.CHECKPOINT),
-                       os.path.join(Configuration.OUTPUT, Configuration.OUTPUT_FOLDER, "opt_" + Configuration.CHECKPOINT))
     trainer.train()

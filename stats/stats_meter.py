@@ -60,6 +60,6 @@ class StatsMeter:
                 self._dices[class_num] += dice
 
     def __str__(self):
-        desc = "NUM_CLASSES:{}_mean_loss:{}_accuracy:{}_mean_IOU:{}_mean_DICE:{}".format(
+        desc = "NUM_CLASSES:{}_mean_loss:{:.3f}_accuracy:{:.3f}_mean_IOU:{:.3f}_mean_DICE:{:.3f}".format(
             self._num_classes, self.mean_loss, self.accuracy, self.mean_iou, self.mean_dice)
         return desc
