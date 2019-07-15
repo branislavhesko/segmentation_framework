@@ -41,10 +41,10 @@ class StatsMeter:
         return np.mean(self._dices / self._number_of_images_passed)
 
     def update(self, prediction, ground_truth, loss):
-        self._number_of_images_passed += 1
+        self._number_of_images_passed += prediction.shape[0]
         self._sum_of_losses += loss
         self._correctly_predicted_pixels += np.sum(prediction == ground_truth)
-        self._total_predicted_pixels += prediction.shape[-1] * prediction.shape[-2]
+        self._total_predicted_pixels += prediction.shape[-1] * prediction.shape[-2] * prediction.shape[0]
         for batch_num in range(prediction.shape[0]):
             for class_num in range(self._num_classes):
                 iou = np.sum(np.bitwise_and(prediction[batch_num, :, :] == class_num, ground_truth[
@@ -54,12 +54,12 @@ class StatsMeter:
                 dice = 2 * np.sum(np.bitwise_and(prediction[batch_num, :, :] == class_num, ground_truth[
                     batch_num, :, :] == class_num)) / (np.sum(prediction[
                         batch_num, :, :] == class_num) + np.sum(ground_truth[batch_num, :, :] == class_num))
-                if np.isnan(iou) or np.isnan(dice) or np.isinf(dice) or np.isinf(iou):
+                if np.isnan(iou) or np.isnan(dice) or np.isinf(dice) or np.isinf(iou) or abs(iou) > 1. or abs(dice) > 1.:
                     continue
                 self._ious[class_num] += iou
                 self._dices[class_num] += dice
 
     def __str__(self):
-        desc = "NUM_CLASSES:{}_mean_loss:{:.3f}_accuracy:{:.3f}_mean_IOU:{:.3f}_mean_DICE:{:.3f}".format(
+        desc = "NUM_CLASSES{}_mean_loss{:.3f}_accuracy{:.3f}_mean_IOU{:.3f}_mean_DICE{:.3f}".format(
             self._num_classes, self.mean_loss, self.accuracy, self.mean_iou, self.mean_dice)
         return desc

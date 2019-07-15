@@ -17,6 +17,7 @@ class Normalize:
         img[:, :, 2] = (img[:, :, 2] - self._means[2]) / self._stds[2]
         return img, mask
 
+
 class RandomHorizontalFlip:
 
     def __init__(self, p=0.5):

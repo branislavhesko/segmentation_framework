@@ -23,6 +23,7 @@ from stats.stats_meter import StatsMeter
 from utils.segmentation_vizualization import (
     generate_palette, map_palette, show_segmentation_into_original_image, vizualize_segmentation)
 
+
 class TrainModel:
     
     def __init__(self, config: Configuration):
@@ -40,7 +41,10 @@ class TrainModel:
 
     def train(self):
         self.model.train()
+        self.validate(314)
+
         for epoch in range(self._config.NUMBER_OF_EPOCHS):
+            self.average_meter_train = StatsMeter(self._config.NUM_CLASSES)
             for data in tqdm(self.loader_train):
                 img, mask, indices, img_path, mask_path = data
                 self.optimizer.zero_grad()
@@ -137,9 +141,9 @@ class TrainModel:
         dataloader_val = DataLoaderCrop2D(img_files=imgs_val, mask_files=masks_val, 
                                         crop_size=(self._config.CROP_SIZE, self._config.CROP_SIZE), 
                                         stride=self._config.STRIDE, transform=self._config.VAL_AUGMENTATION)
-        self.loader_train = DataLoader(dataloader_train, batch_size=self._config.BATCH_SIZE, shuffle=True, num_workers=0)
+        self.loader_train = DataLoader(dataloader_train, batch_size=self._config.BATCH_SIZE, shuffle=True, num_workers=4)
         # TODO: currently only validation with batch_size 1 is supported
-        self.loader_val = DataLoader(dataloader_val, batch_size=1, shuffle=False, num_workers=0)
+        self.loader_val = DataLoader(dataloader_val, batch_size=1, shuffle=False, num_workers=4)
 
         if not os.path.exists(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER)):
             os.makedirs(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER))
@@ -169,7 +173,7 @@ class TrainModel:
     def save_model(self, epoch_number=0):
         now = datetime.now()
         epoch_str = "_epoch{}_".format(epoch_number)
-        now = now.strftime("_%m-%d-%Y_%H:%M:%S_")
+        now = now.strftime("_%m-%d-%Y_%H_%M_%S_")
         filename = str(self.model) + epoch_str + now + str(self.average_meter_val) + ".pth"
         torch.save(self.model.state_dict(), os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, filename))
         torch.save(self.optimizer.state_dict(), os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, "opt_" + filename))

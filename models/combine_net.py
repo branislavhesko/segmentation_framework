@@ -16,7 +16,6 @@ class _MergeBlock(nn.Module):
         layers = [
             nn.Conv2d(in_channels, self._num_classes, kernel_size=3, padding=1),
             nn.BatchNorm2d(self._num_classes),
-            nn.ReLU(inplace=True)
         ]
         self.merge = nn.Sequential(*layers)
 
