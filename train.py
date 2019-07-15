@@ -41,7 +41,6 @@ class TrainModel:
 
     def train(self):
         self.model.train()
-        self.validate(314)
 
         for epoch in range(self._config.NUMBER_OF_EPOCHS):
             self.average_meter_train = StatsMeter(self._config.NUM_CLASSES)
