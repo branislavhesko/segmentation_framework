@@ -3,6 +3,7 @@ from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 
 from models.combine_net import CombineNet
+from models.unet import UNet
 from utils.learning_rate import adaptive_learning_rate
 from utils.transforms import (ComposeTransforms, Normalize, RandomHorizontalFlip, RandomRotate, 
                               RandomVerticalFlip, RandomSquaredCrop, ToTensor, Transpose)
@@ -15,13 +16,14 @@ class DataProps:
 
 available_models = {
     "CombineNet": CombineNet,
-    "DeepLabV3p": None
+    "DeepLabV3p": None,
+    "UNet": UNet
 }
 
 
 class Configuration:
     NUM_CLASSES = 2
-    BATCH_SIZE = 2
+    BATCH_SIZE = 4
     CROP_SIZE = 512
     STRIDE = 0.2
     STRIDE_LIMIT = (1000, 0.4)  # THIS PREVENTS DATASET HALTING
@@ -29,10 +31,10 @@ class Configuration:
     LEARNING_RATE = 1e-2 / np.sqrt(16 / 2)
     FOLDER_WITH_IMAGE_DATA = "./data/"
     OUTPUT = "ckpt"
-    OUTPUT_FOLDER = "vessels_segmentation_256"
+    OUTPUT_FOLDER = "vessels_segmentation_unet"
     
-    MODEL = "CombineNet"
-    CHECKPOINT = "CombineNet_epoch0__07-03-2019_05_30_59_NUM_CLASSES2_mean_loss0.103_accuracy0.962_mean_IOU0.788_mean_DICE0.863.pth"
+    MODEL = "UNet"
+    CHECKPOINT = ""
     LOSS = CrossEntropyLoss
     OPTIMALIZER = SGD
     VALIDATION_FREQUENCY = 1  # num epochs
