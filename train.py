@@ -66,7 +66,7 @@ class TrainModel:
             if epoch % self._config.VALIDATION_FREQUENCY == 0:
                 self.validate(epoch)
                 self.model.train()
-                self.save_model()
+                self.save_model(epoch)
 
     def validate(self, epoch_num=0):
         path_to_save = os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, str(epoch_num) + "_epoch")

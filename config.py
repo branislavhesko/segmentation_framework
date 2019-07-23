@@ -23,7 +23,7 @@ available_models = {
 
 class Configuration:
     NUM_CLASSES = 2
-    BATCH_SIZE = 4
+    BATCH_SIZE = 2
     CROP_SIZE = 512
     STRIDE = 0.2
     STRIDE_LIMIT = (1000, 0.4)  # THIS PREVENTS DATASET HALTING
@@ -31,10 +31,10 @@ class Configuration:
     LEARNING_RATE = 1e-2 / np.sqrt(16 / 2)
     FOLDER_WITH_IMAGE_DATA = "./data/"
     OUTPUT = "ckpt"
-    OUTPUT_FOLDER = "vessels_segmentation_unet"
+    OUTPUT_FOLDER = "vessels_segmentation_256"
     
-    MODEL = "UNet"
-    CHECKPOINT = ""
+    MODEL = "CombineNet"
+    CHECKPOINT = "CombineNet_epoch0__07-03-2019_13_01_20_NUM_CLASSES2_mean_loss0.106_accuracy0.962_mean_IOU0.788_mean_DICE0.862.pth"
     LOSS = CrossEntropyLoss
     OPTIMALIZER = SGD
     VALIDATION_FREQUENCY = 1  # num epochs
