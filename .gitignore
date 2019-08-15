@@ -2,3 +2,5 @@ data/*
 *pyc
 .vscode/*
 ckpt/*
+*.png
+*.tif

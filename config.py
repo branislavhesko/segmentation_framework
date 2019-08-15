@@ -34,7 +34,7 @@ class Configuration:
     OUTPUT_FOLDER = "vessels_segmentation_256"
     
     MODEL = "CombineNet"
-    CHECKPOINT = "CombineNet_epoch0__07-03-2019_13_01_20_NUM_CLASSES2_mean_loss0.106_accuracy0.962_mean_IOU0.788_mean_DICE0.862.pth"
+    CHECKPOINT = "CombineNet_epoch7__07-24-2019_19_14_29_NUM_CLASSES2_mean_loss0.088_accuracy0.967_mean_IOU0.805_mean_DICE0.879.pth"
     LOSS = CrossEntropyLoss
     OPTIMALIZER = SGD
     VALIDATION_FREQUENCY = 1  # num epochs
