@@ -28,13 +28,13 @@ class Configuration:
     STRIDE = 0.2
     STRIDE_LIMIT = (1000, 0.4)  # THIS PREVENTS DATASET HALTING
     NUMBER_OF_EPOCHS = 100
-    LEARNING_RATE = 1e-2 / np.sqrt(16 / 2)
+    LEARNING_RATE = 1e-3
     FOLDER_WITH_IMAGE_DATA = "./data/"
     OUTPUT = "ckpt"
-    OUTPUT_FOLDER = "vessels_segmentation_256"
+    OUTPUT_FOLDER = "vessels_segmentation"
     
     MODEL = "CombineNet"
-    CHECKPOINT = "CombineNet_epoch7__07-24-2019_19_14_29_NUM_CLASSES2_mean_loss0.088_accuracy0.967_mean_IOU0.805_mean_DICE0.879.pth"
+    CHECKPOINT = ""
     LOSS = CrossEntropyLoss
     OPTIMALIZER = SGD
     VALIDATION_FREQUENCY = 1  # num epochs
