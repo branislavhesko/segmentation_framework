@@ -19,7 +19,7 @@ class DataProps:
 available_models = {
     "CombineNet": CombineNet,
     "DeepLabV3p": DeepLab,
-    "PSPNet", PSPNet,
+    "PSPNet": PSPNet,
     "UNet": UNet
 }
 
