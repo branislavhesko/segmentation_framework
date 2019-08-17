@@ -28,7 +28,7 @@ class Configuration:
     STRIDE = 0.2
     STRIDE_LIMIT = (1000, 0.4)  # THIS PREVENTS DATASET HALTING
     NUMBER_OF_EPOCHS = 100
-    LEARNING_RATE = 1e-3
+    LEARNING_RATE = 5e-3
     FOLDER_WITH_IMAGE_DATA = "./data/"
     OUTPUT = "ckpt"
     OUTPUT_FOLDER = "vessels_segmentation"
