@@ -3,7 +3,7 @@ from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 
 from models.combine_net import CombineNet
-from models.deeplabv3p.deeplab import DeepLab
+from models.deeplab import DeepLab
 from models.psp_net import PSPNet
 from models.unet import UNet
 from utils.learning_rate import adaptive_learning_rate

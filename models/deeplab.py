@@ -1,10 +1,11 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from deeplabv3p.modeling.sync_batchnorm.batchnorm import SynchronizedBatchNorm2d
-from deeplabv3p.modeling.aspp import build_aspp
-from deeplabv3p.modeling.decoder import build_decoder
-from deeplabv3p.modeling.backbone import build_backbone
+from models.deeplabv3p.sync_batchnorm.batchnorm import SynchronizedBatchNorm2d
+from models.deeplabv3p.aspp import build_aspp
+from models.deeplabv3p.decoder import build_decoder
+from models.deeplabv3p.backbone import build_backbone
+
 
 class DeepLab(nn.Module):
     def __init__(self, backbone='resnet', output_stride=16, num_classes=21,
