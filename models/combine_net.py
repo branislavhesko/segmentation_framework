@@ -12,10 +12,14 @@ class _MergeBlock(nn.Module):
     def __init__(self, in_channels, number_of_classes):
         super(_MergeBlock, self).__init__()
         self._in_channels = in_channels
+        moddle_channels = in_channels // 2
         self._num_classes = number_of_classes
         layers = [
+            nn.Conv2d(in_channels, in_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(in_channels),
+            nn.ReLU(inplace=True),
+            nn.Dropout2d(0.1),
             nn.Conv2d(in_channels, self._num_classes, kernel_size=3, padding=1),
-            nn.BatchNorm2d(self._num_classes),
         ]
         self.merge = nn.Sequential(*layers)
 
@@ -62,16 +66,16 @@ class CombineNet(nn.Module):
                nn.BatchNorm2d(512),
                nn.ReLU(inplace=True)] * 2)
         )
-        self.dec4 = _DecoderBlock(int(1536), 256, 4)
-        self.dec3 = _DecoderBlock(int(768), 256, 4)
-        self.dec2 = _DecoderBlock(int(512), 128, 2)
-        self.dec1 = _DecoderBlock(int(192), 128, 2)
+        self.dec4 = _DecoderBlock(int(1536), 128, 4)
+        self.dec3 = _DecoderBlock(int(640), 128, 4)
+        self.dec2 = _DecoderBlock(int(384), 64, 2)
+        self.dec1 = _DecoderBlock(int(128), 64, 2)
         self.ppm1 = PyramidPoolingModule(64, 16, (1, 2, 3, 6))
         self.ppm2 = PyramidPoolingModule(256, 16, (1, 2, 3, 6))
         self.ppm3 = PyramidPoolingModule(512, 16, (1, 2, 3, 6))
         self.ppm4 = PyramidPoolingModule(1024, 16, (1, 2, 3, 6))
         self.ppm5 = PyramidPoolingModule(2048, 16, (1, 2, 3, 6))
-        self.merge = _MergeBlock(5 * 64 + 128, num_classes)
+        self.merge = _MergeBlock(384, num_classes)
         initialize_weights(self.dec5, self.dec4, self.dec3, self.dec2, self.dec1, self.ppm1,
                            self.ppm2, self.ppm3, self.ppm4, self.ppm5, self.merge)
 
