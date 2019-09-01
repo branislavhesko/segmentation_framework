@@ -42,7 +42,10 @@ class TrainModel:
 
         for epoch in range(self._config.NUMBER_OF_EPOCHS):
             self.average_meter_train = StatsMeter(self._config.NUM_CLASSES)
-            for data in tqdm(self.loader_train):
+            tqdm_loader = tqdm(self.loader_train)
+            for data in tqdm_loader:
+                tqdm_loader.set_description("Last IOU: {:.3f}".format(self.average_meter_train.last_iou))
+                tqdm_loader.refresh()
                 img, mask, indices, img_path, mask_path = data
                 self.optimizer.zero_grad()
                 img = Variable(img)
@@ -139,9 +142,9 @@ class TrainModel:
                                         crop_size=(self._config.CROP_SIZE, self._config.CROP_SIZE), 
                                         stride=self._config.STRIDE, transform=self._config.VAL_AUGMENTATION)
         self.loader_train = DataLoader(dataloader_train, batch_size=self._config.BATCH_SIZE,
-                                       shuffle=True, num_workers=4)
+                                       shuffle=True, num_workers=2)
         # TODO: currently only validation with batch_size 1 is supported
-        self.loader_val = DataLoader(dataloader_val, batch_size=1, shuffle=False, num_workers=4)
+        self.loader_val = DataLoader(dataloader_val, batch_size=1, shuffle=False, num_workers=2)
 
         if not os.path.exists(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER)):
             os.makedirs(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER))

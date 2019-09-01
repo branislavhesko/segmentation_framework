@@ -7,7 +7,7 @@ from models.deeplab import DeepLab
 from models.psp_net import PSPNet
 from models.unet import UNet
 from utils.learning_rate import adaptive_learning_rate
-from utils.transforms import (ComposeTransforms, Normalize, RandomHorizontalFlip, RandomRotate, 
+from utils.transforms import (Clahe, ComposeTransforms, Normalize, RandomHorizontalFlip, RandomRotate, 
                               RandomVerticalFlip, RandomSquaredCrop, ToTensor, Transpose)
 
 
@@ -27,14 +27,14 @@ available_models = {
 class Configuration:
     NUM_CLASSES = 2
     BATCH_SIZE = 2
-    CROP_SIZE = 512
-    STRIDE = 0.2
-    STRIDE_LIMIT = (1000, 0.5)  # THIS PREVENTS DATASET HALTING
+    CROP_SIZE = 256
+    STRIDE = 0.5
+    STRIDE_LIMIT = (1000, 1.)  # THIS PREVENTS DATASET HALTING
     NUMBER_OF_EPOCHS = 100
     LEARNING_RATE = 1e-3
     FOLDER_WITH_IMAGE_DATA = "./data/"
     OUTPUT = "ckpt"
-    OUTPUT_FOLDER = "vessels_segmentation_combinenet_better_stride"
+    OUTPUT_FOLDER = "vessels_segmentation_combinenet_clahe"
     
     MODEL = "CombineNet"
     CHECKPOINT = ""
@@ -47,7 +47,8 @@ class Configuration:
     WEIGHT_DECAY = 1e-4
     AUGMENTATION = ComposeTransforms([
         Normalize(DataProps.MEAN, DataProps.STD),
-        RandomRotate(1., std_dev=10),
+        RandomSquaredCrop(0.8),
+        RandomRotate(0.6, std_dev=10),
         RandomHorizontalFlip(),
         Transpose(),
         ToTensor()

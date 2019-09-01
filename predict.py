@@ -38,8 +38,6 @@ class Predictor:
             count_map[idx[0]: idx[2], idx[1]: idx[3]] += 1
 
         prediction = prediction.numpy() / count_map
-        plt.imshow(prediction[1, :, :])
-        plt.savefig("skuska1.png")
         return np.argmax(prediction, axis=0)
 
     def _load_model(self, weights_path: str):

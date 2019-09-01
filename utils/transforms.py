@@ -51,13 +51,12 @@ class RandomSquaredCrop:
         h, w = mask.shape
         size = np.random.randint(int(self._minimal_relative_crop_size * h), h)
 
-        crop_x_origin = np.random.randint(0, h - size - 1)
-        crop_y_origin = np.random.randint(0, w - size - 1)
-        print("Crop_x: {}, crop_y: {}, size: {}".format(crop_x_origin, crop_y_origin, size))
+        crop_x_origin = np.random.randint(0, h - size)
+        crop_y_origin = np.random.randint(0, w - size)
+        # print("Crop_x: {}, crop_y: {}, size: {}".format(crop_x_origin, crop_y_origin, size))
         return (
-            img[crop_x_origin: crop_x_origin + size, crop_y_origin: crop_y_origin + size, :],
-            mask[crop_x_origin: crop_x_origin + size, crop_y_origin: crop_y_origin + size])
-
+            cv2.resize(img[crop_x_origin: crop_x_origin + size, crop_y_origin: crop_y_origin + size, :], (h, w)),
+            cv2.resize(mask[crop_x_origin: crop_x_origin + size, crop_y_origin: crop_y_origin + size], (h, w)))
 
 class RandomRotate:
     def __init__(self, p=0.5, std_dev=10):
@@ -88,8 +87,17 @@ class ComposeTransforms:
     def __call__(self, img, mask):
         for transform in self._transforms:
             img, mask = transform(img, mask)
-        
         return img, mask
+
+
+class Clahe:
+    def __init__(self):
+        self._clage = None
+
+    def __call__(self, img, mask):
+        self._clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+        print(img.dtype)
+        return self._clahe.apply(img), mask
         
 
 class ToTensor:

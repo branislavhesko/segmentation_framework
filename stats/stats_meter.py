@@ -11,6 +11,7 @@ class StatsMeter:
         self._num_classes = num_classes
         self._ious = np.zeros(self._num_classes)
         self._dices = np.zeros(self._num_classes)
+        self.last_iou = 0
 
     def reset(self):
         self._sum_of_losses = 0
@@ -55,9 +56,13 @@ class StatsMeter:
                     batch_num, :, :] == class_num)) / (np.sum(prediction[
                         batch_num, :, :] == class_num) + np.sum(ground_truth[batch_num, :, :] == class_num))
                 if np.isnan(iou) or np.isnan(dice) or np.isinf(dice) or np.isinf(iou) or abs(iou) > 1. or abs(dice) > 1.:
-                    continue
+                    if np.sum(np.bitwise_and(prediction[batch_num, :, :] == class_num, ground_truth[
+                            batch_num, :, :] == class_num)) == 0:
+                        iou = 1.
+                        dice = 1.
                 self._ious[class_num] += iou
                 self._dices[class_num] += dice
+                self.last_iou = iou
 
     def __str__(self):
         desc = "NUM_CLASSES{}_mean_loss{:.3f}_accuracy{:.3f}_mean_IOU{:.3f}_mean_DICE{:.3f}".format(

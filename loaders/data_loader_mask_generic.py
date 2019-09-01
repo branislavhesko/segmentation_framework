@@ -5,6 +5,7 @@ from PIL import Image
 
 from config import Configuration
 from loaders.subimage_info_holder import get_number_of_subimages, ImageLoader, InfoEnum, SubImageInfoHolder
+from utils.transforms import Clahe
 
 
 # TODO: it remains to make better border image indexing
@@ -35,7 +36,8 @@ class DataLoaderCrop2D:
         img = img / 255.
         mask = cv2.imread(info.mask, cv2.IMREAD_GRAYSCALE)
         mask[mask > 0] = 1
-        data = (*self._transform(*self._crop_image_and_mask(img, mask, info)), info.slice, info.img, info.mask)
+        data = (*self._transform(*self._crop_image_and_mask(img, mask, info)),
+                info.slice, info.img, info.mask)
         return data
 
     @staticmethod
