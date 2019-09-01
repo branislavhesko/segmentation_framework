@@ -6,8 +6,6 @@ import shutil
 import sys
 
 import cv2
-import matplotlib
-matplotlib.use("Agg")
 from matplotlib import pyplot as plt
 import numpy as np
 from scipy.io import savemat
@@ -158,7 +156,8 @@ class TrainModel:
         plt.subplot(1, 2, 2)
         plt.imshow(prediction[1, :, :])
         plt.savefig(os.path.join(name, img_name + "_maps.png"), bbox_inches="tight")
-        savemat(os.path.join(name, img_name + ".mat"), {"pred":prediction})
+        plt.close()
+        # savemat(os.path.join(name, img_name + ".mat"), {"pred":prediction})
         prediction = np.argmax(prediction, axis=0)
         prediction_gt = vizualize_segmentation(np.array(gt > 0).astype(np.uint8), np.array(prediction > 0).astype(np.uint8))
         cv2.imwrite(os.path.join(name, img_name + "gt_vs_pred.png"), prediction_gt)

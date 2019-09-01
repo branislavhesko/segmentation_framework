@@ -107,7 +107,6 @@ class Transpose:
         return np.transpose(img, [2, 0, 1]), mask
         
 
-
 if __name__ == "__main__":
     img = cv2.imread("./Study_02_00007_01_L_registered.avi_average_image.tif")
 

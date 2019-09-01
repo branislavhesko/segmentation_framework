@@ -29,18 +29,18 @@ class Configuration:
     BATCH_SIZE = 2
     CROP_SIZE = 512
     STRIDE = 0.2
-    STRIDE_LIMIT = (1000, 0.4)  # THIS PREVENTS DATASET HALTING
+    STRIDE_LIMIT = (1000, 0.5)  # THIS PREVENTS DATASET HALTING
     NUMBER_OF_EPOCHS = 100
-    LEARNING_RATE = 5e-3
+    LEARNING_RATE = 1e-3
     FOLDER_WITH_IMAGE_DATA = "./data/"
     OUTPUT = "ckpt"
-    OUTPUT_FOLDER = "vessels_segmentation"
+    OUTPUT_FOLDER = "vessels_segmentation_combinenet_better_stride"
     
     MODEL = "CombineNet"
     CHECKPOINT = ""
     LOSS = CrossEntropyLoss
     OPTIMALIZER = SGD
-    VALIDATION_FREQUENCY = 1  # num epochs
+    VALIDATION_FREQUENCY = 3  # num epochs
     CUDA = True
     
     MOMENTUM = 0.9

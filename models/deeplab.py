@@ -8,7 +8,7 @@ from models.deeplabv3p.backbone import build_backbone
 
 
 class DeepLab(nn.Module):
-    def __init__(self, backbone='resnet', output_stride=16, num_classes=21,
+    def __init__(self, num_classes=21, backbone='resnet', output_stride=16,
                  sync_bn=True, freeze_bn=False):
         super(DeepLab, self).__init__()
         if backbone == 'drn':
@@ -61,6 +61,8 @@ class DeepLab(nn.Module):
                         if p.requires_grad:
                             yield p
 
+    def __str__(self):
+        return "DeepLabv3p"
 
 if __name__ == "__main__":
     model = DeepLab(backbone='mobilenet', output_stride=16)
