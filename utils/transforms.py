@@ -3,7 +3,7 @@ import cv2
 from skimage.transform import resize
 import torch
 from scipy.ndimage.interpolation import rotate
-
+from PIL import Image
 
 class Normalize:
     def __init__(self, means, stds):
@@ -50,13 +50,16 @@ class RandomSquaredCrop:
     def __call__(self, img, mask):
         h, w = mask.shape
         size = np.random.randint(int(self._minimal_relative_crop_size * h), h)
-
         crop_x_origin = np.random.randint(0, h - size)
         crop_y_origin = np.random.randint(0, w - size)
         # print("Crop_x: {}, crop_y: {}, size: {}".format(crop_x_origin, crop_y_origin, size))
-        return (
-            cv2.resize(img[crop_x_origin: crop_x_origin + size, crop_y_origin: crop_y_origin + size, :], (h, w)),
-            cv2.resize(mask[crop_x_origin: crop_x_origin + size, crop_y_origin: crop_y_origin + size], (h, w)))
+        image = cv2.resize(img[crop_x_origin: crop_x_origin + size, crop_y_origin: crop_y_origin + size, :], (w, h)),
+        mask_ = Image.fromarray(mask[crop_x_origin: crop_x_origin + size, 
+                           crop_y_origin: crop_y_origin + size])
+        mask_ = mask_.resize((w, h), Image.NEAREST)
+        print("MAX: {}, MIN: {}".format(np.amax(mask), np.amin(mask)))
+        return image[0], np.array(mask_)
+
 
 class RandomRotate:
     def __init__(self, p=0.5, std_dev=10):
@@ -116,12 +119,15 @@ class Transpose:
         
 
 if __name__ == "__main__":
-    img = cv2.imread("./Study_02_00007_01_L_registered.avi_average_image.tif")
-
-    mask = cv2.cvtColor(cv2.threshold(img, 100, 255, type=cv2.THRESH_BINARY)[1], cv2.COLOR_BGR2GRAY)
-
-    transform = RandomRotate(1)
+    img = cv2.imread("./data/train/imgs/aria_aria_a_14_11.png", cv2.IMREAD_COLOR)[:, :, ::-1]
+    mask = cv2.imread("./data/train/masks/aria_aria_a_14_11.png", cv2.IMREAD_GRAYSCALE)
+    mask[mask > 0] = 1
+    transform = RandomSquaredCrop(0.8)
     from matplotlib import pyplot
     for i in range(20):
-        pyplot.imshow(transform(img, mask)[0])
-        pyplot.show(block=False)
+        image, mask_t = transform(img, mask)
+        pyplot.subplot(1, 2, 1)
+        pyplot.imshow(image)
+        pyplot.subplot(1, 2, 2)
+        pyplot.imshow(mask_t)
+        pyplot.show()
