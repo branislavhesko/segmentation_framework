@@ -32,7 +32,7 @@ class DataLoaderCrop2D:
 
     def __getitem__(self, index):
         info = self.sub_image_info_holder.get_info_at_index(index)
-        img = np.array(Image.open(info.img))
+        img = np.array(Image.open(info.img)).astype(np.float32)
         img = img / 255.
         mask = cv2.imread(info.mask, cv2.IMREAD_GRAYSCALE)
         mask[mask > 0] = 1

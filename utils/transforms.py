@@ -54,11 +54,9 @@ class RandomSquaredCrop:
         crop_y_origin = np.random.randint(0, w - size)
         # print("Crop_x: {}, crop_y: {}, size: {}".format(crop_x_origin, crop_y_origin, size))
         image = cv2.resize(img[crop_x_origin: crop_x_origin + size, crop_y_origin: crop_y_origin + size, :], (w, h)),
-        mask_ = Image.fromarray(mask[crop_x_origin: crop_x_origin + size, 
-                           crop_y_origin: crop_y_origin + size])
-        mask_ = mask_.resize((w, h), Image.NEAREST)
-        print("MAX: {}, MIN: {}".format(np.amax(mask), np.amin(mask)))
-        return image[0], np.array(mask_)
+        mask_ = cv2.resize(mask[crop_x_origin: crop_x_origin + size,
+                           crop_y_origin: crop_y_origin + size], (w, h), interpolation=cv2.INTER_NEAREST)
+        return image[0], mask_
 
 
 class RandomRotate:
@@ -72,7 +70,7 @@ class RandomRotate:
         else:
             # angle = np.random.randint(0, 180)
             angle = np.random.normal(0, self._std_dev / 3.)  # normal distribution
-            return rotate(img, angle, reshape=False), rotate(mask, angle, reshape=False)
+            return rotate(img, angle, reshape=False), rotate(mask, angle, reshape=False, order=0)
             
 
 class Resize:

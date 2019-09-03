@@ -140,7 +140,7 @@ class TrainModel:
                                            stride=self._config.STRIDE, transform=self._config.AUGMENTATION)
         dataloader_val = DataLoaderCrop2D(img_files=imgs_val, mask_files=masks_val, 
                                         crop_size=(self._config.CROP_SIZE, self._config.CROP_SIZE), 
-                                        stride=self._config.STRIDE, transform=self._config.VAL_AUGMENTATION)
+                                        stride=self._config.STRIDE_VAL, transform=self._config.VAL_AUGMENTATION)
         self.loader_train = DataLoader(dataloader_train, batch_size=self._config.BATCH_SIZE,
                                        shuffle=True, num_workers=2)
         # TODO: currently only validation with batch_size 1 is supported
