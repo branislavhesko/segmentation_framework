@@ -4,3 +4,4 @@ data/*
 ckpt/*
 *.png
 *.tif
+.idea/*

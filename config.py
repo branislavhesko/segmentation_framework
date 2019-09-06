@@ -27,7 +27,7 @@ available_models = {
 class Configuration:
     NUM_CLASSES = 2
     BATCH_SIZE = 2
-    CROP_SIZE = 512
+    CROP_SIZE = 256
     STRIDE = 0.5
     STRIDE_VAL = 0.2
     STRIDE_LIMIT = (1000, 1.)  # THIS PREVENTS DATASET HALTING
@@ -35,7 +35,7 @@ class Configuration:
     LEARNING_RATE = 1e-3
     FOLDER_WITH_IMAGE_DATA = "./data/"
     OUTPUT = "ckpt"
-    OUTPUT_FOLDER = "vessels_segmentation_iou_repaired"
+    OUTPUT_FOLDER = "vessels_segmentation_unnormalized"
     
     MODEL = "CombineNet"
     CHECKPOINT = ""
@@ -47,15 +47,15 @@ class Configuration:
     MOMENTUM = 0.9
     WEIGHT_DECAY = 1e-4
     AUGMENTATION = ComposeTransforms([
-        Normalize(DataProps.MEAN, DataProps.STD),
-        RandomSquaredCrop(0.8),
-        RandomRotate(0.6, std_dev=10),
+        #Normalize(DataProps.MEAN, DataProps.STD),
+        RandomSquaredCrop(0.9),
+        RandomRotate(0.5, std_dev=10),
         RandomHorizontalFlip(),
         Transpose(),
         ToTensor()
     ])
     VAL_AUGMENTATION = ComposeTransforms([
-        Normalize(DataProps.MEAN, DataProps.STD),
+        #Normalize(DataProps.MEAN, DataProps.STD),
         Transpose(),
         ToTensor()
     ])
