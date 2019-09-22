@@ -16,13 +16,14 @@ class _MergeBlock(nn.Module):
         self._num_classes = number_of_classes
         layers = [nn.Conv2d(in_channels, 256, kernel_size=3, stride=1, padding=1, bias=False),
                   nn.BatchNorm2d(256),
-                  nn.ReLU(),
+                  nn.ReLU(inplace=True),
                   nn.Dropout(0.5),
                   nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1, bias=False),
                   nn.BatchNorm2d(256),
-                  nn.ReLU(),
+                  nn.ReLU(inplace=True),
                   nn.Dropout(0.1),
-                  nn.Conv2d(256, self._num_classes, kernel_size=1, stride=1)]
+                  nn.Conv2d(256, self._num_classes, kernel_size=1, stride=1),
+                  nn.ReLU(inplace=True)]
         self.merge = nn.Sequential(*layers)
 
     def forward(self, x):

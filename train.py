@@ -74,7 +74,6 @@ class TrainModel:
         if not os.path.exists(path_to_save):
             os.makedirs(path_to_save)
             
-        self.model.eval()
         self.average_meter_val = StatsMeter(self._config.NUM_CLASSES)
         img_shape = None
         CurrentlyOpened = namedtuple("CurrentlyOpened", ["img", "mask"], verbose=False)
@@ -127,10 +126,10 @@ class TrainModel:
             {'params': [param for name, param in self.model.named_parameters() if name[-4:] != 'bias'],
             'lr': self._config.LEARNING_RATE, 'weight_decay': self._config.WEIGHT_DECAY}
             ], momentum=self._config.MOMENTUM, nesterov=True)
-        imgs_train = glob.glob(os.path.join(self._config.FOLDER_WITH_IMAGE_DATA, "train", "imgs/*.png"))
-        masks_train = glob.glob(os.path.join(self._config.FOLDER_WITH_IMAGE_DATA, "train", "masks/*.png"))
-        imgs_val = glob.glob(os.path.join(self._config.FOLDER_WITH_IMAGE_DATA, "validate", "imgs/*.png"))
-        masks_val = glob.glob(os.path.join(self._config.FOLDER_WITH_IMAGE_DATA, "validate", "masks/*.png"))
+        imgs_train = glob.glob(os.path.join(self._config.FOLDER_WITH_IMAGE_DATA, "train", "imgs/*.tif"))
+        masks_train = glob.glob(os.path.join(self._config.FOLDER_WITH_IMAGE_DATA, "train", "masks/*.tif"))
+        imgs_val = glob.glob(os.path.join(self._config.FOLDER_WITH_IMAGE_DATA, "validate", "imgs/*.tif"))
+        masks_val = glob.glob(os.path.join(self._config.FOLDER_WITH_IMAGE_DATA, "validate", "masks/*.tif"))
         imgs_train.sort()
         imgs_val.sort() 
         masks_train.sort()
@@ -138,7 +137,7 @@ class TrainModel:
         dataloader_train = DataLoaderCrop2D(img_files=imgs_train, mask_files=masks_train, 
                                            crop_size=(self._config.CROP_SIZE, self._config.CROP_SIZE), 
                                            stride=self._config.STRIDE, transform=self._config.AUGMENTATION)
-        dataloader_val = DataLoaderCrop2D(img_files=imgs_val, mask_files=masks_val, 
+        dataloader_val = DataLoaderCrop2D(img_files=imgs_val, mask_files=masks_val,
                                         crop_size=(self._config.CROP_SIZE, self._config.CROP_SIZE), 
                                         stride=self._config.STRIDE_VAL, transform=self._config.VAL_AUGMENTATION)
         self.loader_train = DataLoader(dataloader_train, batch_size=self._config.BATCH_SIZE,

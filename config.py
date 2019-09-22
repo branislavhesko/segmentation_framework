@@ -28,26 +28,28 @@ class Configuration:
     NUM_CLASSES = 2
     BATCH_SIZE = 2
     CROP_SIZE = 256
-    STRIDE = 0.5
+    STRIDE = 0.2
     STRIDE_VAL = 0.2
     STRIDE_LIMIT = (1000, 1.)  # THIS PREVENTS DATASET HALTING
     NUMBER_OF_EPOCHS = 100
     LEARNING_RATE = 1e-3
     FOLDER_WITH_IMAGE_DATA = "./data/"
     OUTPUT = "ckpt"
-    OUTPUT_FOLDER = "vessels_segmentation_unnormalized"
+    OUTPUT_FOLDER = "polyps"
     
     MODEL = "CombineNet"
-    CHECKPOINT = ""
+    CHECKPOINT = "CombineNet_epoch36__09-21-2019_23_09_55_NUM_CLASSES2_mean_loss0.121_accuracy0.975_mean_IOU0.792_mean_DICE0.839.pth"
     LOSS = CrossEntropyLoss
     OPTIMALIZER = SGD
-    VALIDATION_FREQUENCY = 5  # num epochs
+    VALIDATION_FREQUENCY = 2  # num epochs
     CUDA = True
     
     MOMENTUM = 0.9
     WEIGHT_DECAY = 1e-4
     AUGMENTATION = ComposeTransforms([
         Normalize(DataProps.MEAN, DataProps.STD),
+        RandomRotate(0.6),
+        RandomSquaredCrop(0.85),
         RandomHorizontalFlip(),
         RandomVerticalFlip(),
         Transpose(),

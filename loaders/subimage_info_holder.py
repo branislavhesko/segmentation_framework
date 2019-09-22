@@ -5,6 +5,7 @@ import pickle
 import sys
 from tqdm import tqdm
 
+import cv2
 import numpy as np
 from PIL import Image
 
@@ -39,8 +40,8 @@ class SubImageInfoHolder:
 
     def fill_info_dict(self):
         for image_number, (img, mask) in tqdm(enumerate(list(zip(self._img_files, self._mask_files)))):
-            img_matrix = np.asarray(Image.open(img).convert("RGB"))
-            mask_matrix = np.asarray(Image.open(mask).convert("L"))
+            img_matrix = np.asarray(cv2.imread(img, cv2.IMREAD_COLOR))
+            mask_matrix = np.asarray(cv2.imread(mask, cv2.IMREAD_GRAYSCALE))
             if img_matrix.shape[0] > Configuration.STRIDE_LIMIT[0]:
                 stride = Configuration.STRIDE_LIMIT[1]
             else:
