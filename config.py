@@ -61,3 +61,12 @@ class Configuration:
         ToTensor()
     ])
     PATH_TO_SAVED_SUBIMAGE_INFO = None  # FOLDER_WITH_IMAGE_DATA + "train/info.pkl"
+
+
+class TickColonSegmentation(Configuration):
+    NUM_CLASSES = 2
+    OUTPUT_FOLDER = "tick"
+    CHECKPOINT = ""
+    MASK_EXTENSION = ".tif"
+    IMAGE_EXTENSION = ".tif"
+    
