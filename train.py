@@ -11,10 +11,11 @@ import numpy as np
 from scipy.io import savemat
 import torch
 from torch.utils.data.dataloader import DataLoader
-from torch.autograd import Variable
+from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from config import available_models, Configuration
+from helper_scripts.utils import check_and_make_dirs
 from loaders.data_loader_mask_generic import DataLoaderCrop2D
 from models.combine_net import CombineNet
 from stats.stats_meter import StatsMeter
@@ -33,7 +34,7 @@ class TrainModel:
         self.loader_train = None
         self.average_meter_train = StatsMeter(self._config.NUM_CLASSES)
         self.average_meter_val = StatsMeter(self._config.NUM_CLASSES)
-
+        self._writer = SummaryWriter()
         self._initialize()
         self._load_weights_if_available()
 
@@ -48,8 +49,6 @@ class TrainModel:
                 tqdm_loader.refresh()
                 img, mask, indices, img_path, mask_path = data
                 self.optimizer.zero_grad()
-                img = Variable(img)
-                mask = Variable(mask)
                 if self._config.CUDA:
                     img = img.cuda()
                     mask = mask.cuda()
@@ -126,28 +125,8 @@ class TrainModel:
             {'params': [param for name, param in self.model.named_parameters() if name[-4:] != 'bias'],
             'lr': self._config.LEARNING_RATE, 'weight_decay': self._config.WEIGHT_DECAY}
             ], momentum=self._config.MOMENTUM, nesterov=True)
-        imgs_train = glob.glob(os.path.join(self._config.FOLDER_WITH_IMAGE_DATA, "train", "imgs/*.tif"))
-        masks_train = glob.glob(os.path.join(self._config.FOLDER_WITH_IMAGE_DATA, "train", "masks/*.tif"))
-        imgs_val = glob.glob(os.path.join(self._config.FOLDER_WITH_IMAGE_DATA, "validate", "imgs/*.tif"))
-        masks_val = glob.glob(os.path.join(self._config.FOLDER_WITH_IMAGE_DATA, "validate", "masks/*.tif"))
-        imgs_train.sort()
-        imgs_val.sort() 
-        masks_train.sort()
-        masks_val.sort()
-        dataloader_train = DataLoaderCrop2D(img_files=imgs_train, mask_files=masks_train, 
-                                           crop_size=(self._config.CROP_SIZE, self._config.CROP_SIZE), 
-                                           stride=self._config.STRIDE, transform=self._config.AUGMENTATION)
-        dataloader_val = DataLoaderCrop2D(img_files=imgs_val, mask_files=masks_val,
-                                        crop_size=(self._config.CROP_SIZE, self._config.CROP_SIZE), 
-                                        stride=self._config.STRIDE_VAL, transform=self._config.VAL_AUGMENTATION)
-        self.loader_train = DataLoader(dataloader_train, batch_size=self._config.BATCH_SIZE,
-                                       shuffle=True, num_workers=2)
-        # TODO: currently only validation with batch_size 1 is supported
-        self.loader_val = DataLoader(dataloader_val, batch_size=1, shuffle=False, num_workers=2)
-
-        if not os.path.exists(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER)):
-            os.makedirs(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER))
-        
+        check_and_make_dirs(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER))
+       
     def _save_segmentation(self, prediction, count_map, img_path, mask_path, name):
         img_name = os.path.split(img_path)[1][:-4]
         prediction = prediction / count_map
