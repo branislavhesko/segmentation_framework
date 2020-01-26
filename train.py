@@ -14,9 +14,10 @@ from torch.utils.data.dataloader import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from config import available_models, Configuration
+from config import available_models, Configuration, TickColonSegmentation
 from helper_scripts.utils import check_and_make_dirs
 from loaders.data_loader_mask_generic import DataLoaderCrop2D
+from loaders.get_data_loader import get_data_loaders
 from models.combine_net import CombineNet
 from stats.stats_meter import StatsMeter
 from utils.segmentation_vizualization import (
@@ -43,8 +44,8 @@ class TrainModel:
 
         for epoch in range(self._config.NUMBER_OF_EPOCHS):
             self.average_meter_train = StatsMeter(self._config.NUM_CLASSES)
-            tqdm_loader = tqdm(self.loader_train)
-            for data in tqdm_loader:
+            tqdm_loader = tqdm(enumerate(self.loader_train))
+            for idx, data in tqdm_loader:
                 tqdm_loader.set_description("Last IOU: {:.3f}".format(self.average_meter_train.last_iou))
                 tqdm_loader.refresh()
                 img, mask, indices, img_path, mask_path = data
@@ -59,6 +60,8 @@ class TrainModel:
                 loss.backward()
                 self.optimizer.step()
                 self.average_meter_train.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
+                self._writer.add_scalar("Loss/train", loss.item(), idx + len(self.loader_train) * epoch)
+                self._writer.add_scalar("Precision/train", torch.sum(prediction == mask), idx + len(self.loader_train) * epoch)
 
             print("\n" + "-" * 50 + "\n")
             print(self.average_meter_train)
@@ -75,12 +78,12 @@ class TrainModel:
             
         self.average_meter_val = StatsMeter(self._config.NUM_CLASSES)
         img_shape = None
-        CurrentlyOpened = namedtuple("CurrentlyOpened", ["img", "mask"], verbose=False)
+        CurrentlyOpened = namedtuple("CurrentlyOpened", ["img", "mask"])
         opened = CurrentlyOpened(None, None)
         count_map = None
         output_segmented = None
 
-        for data in tqdm(self.loader_val):
+        for idx, data in tqdm(enumerate(self.loader_val)):
             img, mask, indices, img_path, mask_path = data
 
             if self._config.CUDA:
@@ -103,6 +106,8 @@ class TrainModel:
 
             # TODO: print val stats...
             self.average_meter_val.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
+            self._writer.add_scalar("Loss/validation", loss.item(), epoch_num * len(self.loader_val) + idx)
+            self._writer.add_scalar("Precision/validation", loss.item(), epoch_num * len(self.loader_val) + idx)
 
             output_segmented[:, indices[0]: indices[2], indices[1]: indices[3]] += output[0, :, :, :].data
             count_map[indices[0]: indices[2], indices[1]: indices[3]] += 1
@@ -125,6 +130,7 @@ class TrainModel:
             {'params': [param for name, param in self.model.named_parameters() if name[-4:] != 'bias'],
             'lr': self._config.LEARNING_RATE, 'weight_decay': self._config.WEIGHT_DECAY}
             ], momentum=self._config.MOMENTUM, nesterov=True)
+        self.loader_train, self.loader_val = get_data_loaders(self._config)
         check_and_make_dirs(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER))
        
     def _save_segmentation(self, prediction, count_map, img_path, mask_path, name):
@@ -171,5 +177,5 @@ class TrainModel:
 
 
 if __name__ == "__main__":
-    trainer = TrainModel(Configuration)
+    trainer = TrainModel(TickColonSegmentation)
     trainer.train()

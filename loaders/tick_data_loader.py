@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 
 from loaders.data_loader_mask_generic import DataLoaderCrop2D
@@ -5,7 +6,7 @@ from loaders.data_loader_mask_generic import DataLoaderCrop2D
 
 class TickDataLoaderCrop2D(DataLoaderCrop2D):
     MASK_CATEGORIES = {
-        "COLON": (1, (0, 1, 1))
+        "COLON": (1, (0, 0.5, 0.5))
     }
         
     def __init__(self, img_files, mask_files=(), crop_size=(512, 512),
@@ -26,5 +27,5 @@ class TickDataLoaderCrop2D(DataLoaderCrop2D):
     def _transform_mask(self, mask):
         new_mask = np.zeros(mask.shape[:2])
         for key, (index, color) in self.MASK_CATEGORIES.items():
-            new_mask[(mask[:, : 0] > color[0]) & (mask[:, :, 1] > color[1]) & (mask[:, :, 2]) > color[2]] = index
+            new_mask[(mask[:, :, 0] >= color[0]) & (mask[:, :, 1] >= color[1]) & (mask[:, :, 2] >= color[2])] = index
         return new_mask

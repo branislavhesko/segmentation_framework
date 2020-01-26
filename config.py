@@ -40,9 +40,10 @@ class Configuration:
     BATCH_SIZE = 2
     CHECKPOINT = "CombineNet_epoch36__09-21-2019_23_09_55_NUM_CLASSES2_mean_loss0.121_accuracy0.975_mean_IOU0.792_mean_DICE0.839.pth"
 
-    CROP_SIZE = 256
+    CROP_SIZE = 128
     CUDA = True
-    FOLDER_WITH_IMAGE_DATA = "./data/"
+    DATASET = "DataLoaderCrop2D"
+    FOLDER_WITH_IMAGE_DATA = "./data"
 
     LEARNING_RATE = 1e-3
     LOSS = CrossEntropyLoss
@@ -53,8 +54,8 @@ class Configuration:
     NUMBER_OF_EPOCHS = 100
     OUTPUT = "ckpt"
     OUTPUT_FOLDER = "polyps"
-    STRIDE = 0.2
-    STRIDE_VAL = 0.2
+    STRIDE = 1
+    STRIDE_VAL = 1
     STRIDE_LIMIT = (1000, 1.)  # THIS PREVENTS DATASET HALTING
     
     OPTIMALIZER = SGD
@@ -80,15 +81,17 @@ class Configuration:
 
     FOLDERS = {
         NetMode.TRAIN: "train",
-        NetMode.VALIDATE: "validate"
+        NetMode.VALIDATE: "train"
     }
     SUBFOLDERS = {
-        ImagesSubfolder.IMAGES: "imgs/*.tif",
-        ImagesSubfolder.MASKS: "masks/*.tif"
+        ImagesSubfolder.IMAGES: "images/*.tif",
+        ImagesSubfolder.MASKS: "mask/*.tif"
     }
 
 
 class TickColonSegmentation(Configuration):
+    CHECKPOINT = ""
     NUM_CLASSES = 2
     OUTPUT_FOLDER = "tick"
     CHECKPOINT = ""
+    DATASET = "TickDataLoaderCrop2D"

@@ -45,7 +45,7 @@ class SubImageInfoHolder:
             if img_matrix.shape[0] > Configuration.STRIDE_LIMIT[0]:
                 stride = Configuration.STRIDE_LIMIT[1]
             else:
-                stride = Configuration.STRIDE
+                stride = self._stride
             self.image_loader.set_image_and_mask(img_matrix, mask_matrix, stride)
             indices = self.image_loader.get_indices()
             for index in indices:

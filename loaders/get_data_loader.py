@@ -1,8 +1,9 @@
 import glob
 import os
+from torch.utils.data import DataLoader
 
 from config import Configuration, ImagesSubfolder, NetMode
-from loaders.tick_data_loader import TickDataLoaderCrop2D
+from loaders.available_datasets import AvailableDatasets
 
 
 def get_data_loaders(config: Configuration):
@@ -19,11 +20,11 @@ def get_data_loaders(config: Configuration):
         config.FOLDER_WITH_IMAGE_DATA, config.FOLDERS[NetMode.VALIDATE], 
         config.SUBFOLDERS[ImagesSubfolder.MASKS])))
 
-    dataloader_train = DataLoaderCrop2D(img_files=imgs_train, mask_files=masks_train, 
+    dataloader_train = AvailableDatasets.DATASETS[config.DATASET](img_files=imgs_train, mask_files=masks_train, 
                                         crop_size=(config.CROP_SIZE, config.CROP_SIZE), 
                                         stride=config.STRIDE, transform=config.AUGMENTATION)
-    dataloader_val = DataLoaderCrop2D(img_files=imgs_val, mask_files=masks_val,
-                                    crop_size=(self._config.CROP_SIZE, config.CROP_SIZE), 
+    dataloader_val = AvailableDatasets.DATASETS[config.DATASET](img_files=imgs_val, mask_files=masks_val,
+                                    crop_size=(config.CROP_SIZE, config.CROP_SIZE), 
                                     stride=config.STRIDE_VAL, transform=config.VAL_AUGMENTATION)
     loader_train = DataLoader(dataloader_train, batch_size=config.BATCH_SIZE,
                                     shuffle=True, num_workers=config.NUM_WORKERS)
