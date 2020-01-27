@@ -40,7 +40,7 @@ class Configuration:
     BATCH_SIZE = 2
     CHECKPOINT = "CombineNet_epoch36__09-21-2019_23_09_55_NUM_CLASSES2_mean_loss0.121_accuracy0.975_mean_IOU0.792_mean_DICE0.839.pth"
 
-    CROP_SIZE = 128
+    CROP_SIZE = 256
     CUDA = True
     DATASET = "DataLoaderCrop2D"
     FOLDER_WITH_IMAGE_DATA = "./data"

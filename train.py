@@ -61,7 +61,7 @@ class TrainModel:
                 self.optimizer.step()
                 self.average_meter_train.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
                 self._writer.add_scalar("Loss/train", loss.item(), idx + len(self.loader_train) * epoch)
-                self._writer.add_scalar("Precision/train", torch.sum(prediction == mask), idx + len(self.loader_train) * epoch)
+                self._writer.add_scalar("Precision/train", torch.sum(prediction == mask) / (prediction.shape[0] * prediction.shape[1]), idx + len(self.loader_train) * epoch)
 
             print("\n" + "-" * 50 + "\n")
             print(self.average_meter_train)
@@ -107,7 +107,7 @@ class TrainModel:
             # TODO: print val stats...
             self.average_meter_val.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
             self._writer.add_scalar("Loss/validation", loss.item(), epoch_num * len(self.loader_val) + idx)
-            self._writer.add_scalar("Precision/validation", loss.item(), epoch_num * len(self.loader_val) + idx)
+            self._writer.add_scalar("Precision/validation", torch.sum(prediction == mask) / (prediction.shape[0] * prediction.shape[1]), epoch_num * len(self.loader_val) + idx)
 
             output_segmented[:, indices[0]: indices[2], indices[1]: indices[3]] += output[0, :, :, :].data
             count_map[indices[0]: indices[2], indices[1]: indices[3]] += 1
