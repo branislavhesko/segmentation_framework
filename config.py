@@ -87,6 +87,7 @@ class Configuration:
         ImagesSubfolder.IMAGES: "images/*.tif",
         ImagesSubfolder.MASKS: "mask/*.tif"
     }
+    VISUALIZER = "VisualizationSaveImages"
 
 
 class TickColonSegmentation(Configuration):
@@ -95,3 +96,4 @@ class TickColonSegmentation(Configuration):
     OUTPUT_FOLDER = "tick"
     CHECKPOINT = ""
     DATASET = "TickDataLoaderCrop2D"
+    VISUALIZER = "VisualizationTensorboard"

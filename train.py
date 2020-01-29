@@ -22,6 +22,7 @@ from models.combine_net import CombineNet
 from stats.stats_meter import StatsMeter
 from utils.segmentation_vizualization import (
     generate_palette, map_palette, show_segmentation_into_original_image, vizualize_segmentation)
+from visualization import visualizers
 
 
 class TrainModel:
@@ -38,10 +39,11 @@ class TrainModel:
         self._writer = SummaryWriter()
         self._initialize()
         self._load_weights_if_available()
+        self._visualizer = visualizers[self._config.VISUALIZER](self._config, self._writer)
 
     def train(self):
         self.model.train()
-
+        self.validate(0)
         for epoch in range(self._config.NUMBER_OF_EPOCHS):
             self.average_meter_train = StatsMeter(self._config.NUM_CLASSES)
             tqdm_loader = tqdm(enumerate(self.loader_train))
@@ -94,7 +96,7 @@ class TrainModel:
                 if count_map is not None and output_segmented is not None:
                     self._save_segmentation(
                         output_segmented.cpu().numpy(), count_map.cpu().numpy(), 
-                        opened.img, opened.mask, path_to_save)
+                        opened.img, opened.mask, path_to_save, idx=epoch_num * len(self.loader_val) + idx)
                 opened = CurrentlyOpened(img_path[0], mask_path[0])
                 img_shape = cv2.imread(opened.img, cv2.IMREAD_GRAYSCALE).shape
                 output_segmented = torch.zeros((self._config.NUM_CLASSES, img_shape[0], img_shape[1])).cuda()
@@ -113,7 +115,7 @@ class TrainModel:
             count_map[indices[0]: indices[2], indices[1]: indices[3]] += 1
         self._save_segmentation(
             output_segmented.cpu().numpy(), count_map.cpu().numpy(),
-            opened.img, opened.mask, path_to_save)
+            opened.img, opened.mask, path_to_save, idx=epoch_num * len(self.loader_val) + idx)
         print("\n" + "-" * 50 + "\n")
         print(self.average_meter_val)
         print("\n" + "-" * 50 + "\n")
@@ -133,29 +135,9 @@ class TrainModel:
         self.loader_train, self.loader_val = get_data_loaders(self._config)
         check_and_make_dirs(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER))
        
-    def _save_segmentation(self, prediction, count_map, img_path, mask_path, name):
-        img_name = os.path.split(img_path)[1][:-4]
-        prediction = prediction / count_map
-        gt = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
-        img = cv2.imread(img_path, cv2.IMREAD_COLOR)
-        plt.subplot(1, 2, 1)
-        plt.imshow(prediction[0, :, :])
-        plt.subplot(1, 2, 2)
-        plt.imshow(prediction[1, :, :])
-        plt.savefig(os.path.join(name, img_name + "_maps.png"), bbox_inches="tight")
-        plt.close()
-        # savemat(os.path.join(name, img_name + ".mat"), {"pred":prediction})
-        prediction = np.argmax(prediction, axis=0)
-        prediction_gt = vizualize_segmentation(np.array(gt > 0).astype(np.uint8), np.array(prediction > 0).astype(np.uint8))
-        cv2.imwrite(os.path.join(name, img_name + "gt_vs_pred.png"), prediction_gt)
-        cv2.imwrite(os.path.join(name, img_name + "_prediction.png"), map_palette(
-            prediction, generate_palette(self._config.NUM_CLASSES)))        
-        cv2.imwrite(os.path.join(name, img_name + "_gt.png"), map_palette(
-            gt /255, generate_palette(self._config.NUM_CLASSES)))
-        cv2.imwrite(os.path.join(name, img_name + "_img_vs_pred.png"), 
-                show_segmentation_into_original_image(img, prediction))
-        shutil.copy(img_path, os.path.join(name, img_name + ".png"))
-        
+    def _save_segmentation(self, prediction, count_map, img_path, mask_path, name, idx):
+        self._visualizer.process_output(prediction, count_map, img_path, mask_path, name=name, idx=idx)
+
     def save_model(self, epoch_number=0):
         now = datetime.now()
         epoch_str = "_epoch{}_".format(epoch_number)
