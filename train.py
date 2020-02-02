@@ -154,10 +154,10 @@ class TrainModel:
     def _load_weights_if_available(self):
         if len(self._config.CHECKPOINT) > 0:
             self.load_model(
-                os.path.join(Configuration.OUTPUT, Configuration.OUTPUT_FOLDER, Configuration.CHECKPOINT),
-                os.path.join(Configuration.OUTPUT, Configuration.OUTPUT_FOLDER, "opt_" + Configuration.CHECKPOINT))
+                os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, self._config.CHECKPOINT),
+                os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, "opt_" + self._config.CHECKPOINT))
 
 
 if __name__ == "__main__":
-    trainer = TrainModel(TickColonSegmentation)
+    trainer = TrainModel(TickColonSegmentation())
     trainer.train()

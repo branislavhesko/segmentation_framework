@@ -54,9 +54,9 @@ class Configuration:
     NUMBER_OF_EPOCHS = 100
     OUTPUT = "ckpt"
     OUTPUT_FOLDER = "polyps"
-    STRIDE = 1
-    STRIDE_VAL = 1
-    STRIDE_LIMIT = (1000, 1.)  # THIS PREVENTS DATASET HALTING
+    STRIDE = 0.2
+    STRIDE_VAL = 0.2
+    STRIDE_LIMIT = (1000, 0.2)  # THIS PREVENTS DATASET HALTING
     
     OPTIMALIZER = SGD
     VALIDATION_FREQUENCY = 2  # num epochs
@@ -91,9 +91,8 @@ class Configuration:
 
 
 class TickColonSegmentation(Configuration):
-    CHECKPOINT = ""
+    CHECKPOINT = "CombineNet_epoch84__01-29-2020_08_05_41_NUM_CLASSES2_mean_loss0.032_accuracy0.988_mean_IOU0.916_mean_DICE0.941.pth"
     NUM_CLASSES = 2
     OUTPUT_FOLDER = "tick"
-    CHECKPOINT = ""
     DATASET = "TickDataLoaderCrop2D"
     VISUALIZER = "VisualizationTensorboard"

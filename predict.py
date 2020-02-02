@@ -3,7 +3,7 @@ import numpy as np
 import os
 import torch
 from tqdm import tqdm
-from config import available_models, Configuration
+from config import available_models, Configuration, TickColonSegmentation
 from loaders.subimage_info_holder import ImageLoader
 
 
@@ -27,17 +27,17 @@ class Predictor:
         prediction = torch.zeros((self._config.NUM_CLASSES, *image.shape[:2]))
         if self._cuda:
             prediction = prediction.cuda()
+        with torch.no_grad():
+            for idx in tqdm(indices):
+                input_slice = image[idx[0]: idx[2], idx[1]: idx[3], :]
+                input_slice = self._transform(input_slice, input_slice[:, :, 0])[0]
+                if self._cuda:
+                    input_slice = input_slice.cuda()
+                output = self.model(input_slice.unsqueeze(dim=0))
+                prediction[:, idx[0]: idx[2], idx[1]: idx[3]] += torch.squeeze(output.data)
+                count_map[idx[0]: idx[2], idx[1]: idx[3]] += 1
 
-        for idx in tqdm(indices):
-            input_slice = image[idx[0]: idx[2], idx[1]: idx[3], :]
-            input_slice = self._transform(input_slice, input_slice[:, :, 0])[0]
-            if self._cuda:
-                input_slice = input_slice.cuda()
-            output = self.model(input_slice.unsqueeze(dim=0))
-            prediction[:, idx[0]: idx[2], idx[1]: idx[3]] += torch.squeeze(output.data)
-            count_map[idx[0]: idx[2], idx[1]: idx[3]] += 1
-
-        prediction = prediction.numpy() / count_map
+        prediction = prediction.cpu().numpy() / count_map
         return np.argmax(prediction, axis=0)
 
     def _load_model(self, weights_path: str):
@@ -49,8 +49,15 @@ class Predictor:
 if __name__ == "__main__":
     import cv2
     from PIL import Image
-    img = np.array(Image.open("./drive_23_training.png")) / 255.
+    import glob
+    images = glob.glob(os.path.join("./data/tick_eval/kl_32_12d_16bit_tiff/*.tif"))
+    predictor = Predictor(TickColonSegmentation(), cuda=True)
+    for image in images:
+        print("Processing image: {}".format(image))
+        base_name = os.path.splitext(os.path.basename(image))[0]
 
-    pred = Predictor(Configuration(), False)
-    mask = pred.predict(img)
-    cv2.imwrite("skuska.png", (mask * 255).astype(np.uint8))
+        img = np.array(cv2.imread(image, cv2.IMREAD_COLOR)).astype(np.float32)
+        img = img / 255.        
+        mask = predictor.predict(img)
+        cv2.imwrite(os.path.join("./data/output/", base_name + ".png"), mask * 255)
+

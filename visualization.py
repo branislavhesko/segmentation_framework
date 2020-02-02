@@ -40,7 +40,7 @@ class VisualizationSaveImages(VisualizationInterface):
         img_name = os.path.split(img_path)[1][:-4]
         gt = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         img = cv2.imread(img_path, cv2.IMREAD_COLOR)
-        prediction = prediction / count_map
+        prediction = predicdtion / count_map
         fig = self.store_prediction(prediction)
         fig.savefig(os.path.join(name, img_name + "_maps.png"), bbox_inches="tight")
         prediction = np.argmax(prediction, axis=0)
