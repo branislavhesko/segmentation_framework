@@ -42,9 +42,8 @@ class TrainModel:
         self._visualizer = visualizers[self._config.VISUALIZER](self._config, self._writer)
 
     def train(self):
-        self.model.train()
-        self.validate(0)
         for epoch in range(self._config.NUMBER_OF_EPOCHS):
+            self.model.train()
             self.average_meter_train = StatsMeter(self._config.NUM_CLASSES)
             tqdm_loader = tqdm(enumerate(self.loader_train))
             for idx, data in tqdm_loader:
@@ -74,6 +73,7 @@ class TrainModel:
                 self.save_model(epoch)
 
     def validate(self, epoch_num=0):
+        self.model.eval()
         path_to_save = os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, str(epoch_num) + "_epoch")
         if not os.path.exists(path_to_save):
             os.makedirs(path_to_save)
