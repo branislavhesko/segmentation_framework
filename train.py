@@ -6,9 +6,7 @@ import shutil
 import sys
 
 import cv2
-from matplotlib import pyplot as plt
 import numpy as np
-from scipy.io import savemat
 import torch
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.tensorboard import SummaryWriter
@@ -43,6 +41,7 @@ class TrainModel:
 
     def train(self):
         for epoch in range(self._config.NUMBER_OF_EPOCHS):
+            self.validate(-1)
             self.model.train()
             self.average_meter_train = StatsMeter(self._config.NUM_CLASSES)
             tqdm_loader = tqdm(enumerate(self.loader_train))
@@ -62,12 +61,14 @@ class TrainModel:
                 self.optimizer.step()
                 self.average_meter_train.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
                 self._writer.add_scalar("Loss/train", loss.item(), idx + len(self.loader_train) * epoch)
-                self._writer.add_scalar("Precision/train", torch.sum(prediction == mask) / (prediction.shape[0] * prediction.shape[1]), idx + len(self.loader_train) * epoch)
+                self._writer.add_scalar("Precision/train", torch.sum(prediction == mask) / (
+                     prediction.shape[1] * prediction.shape[2]), idx + len(self.loader_train) * epoch)
 
             print("\n" + "-" * 50 + "\n")
             print(self.average_meter_train)
             print("\n" + "-" * 50 + "\n")
             if epoch % self._config.VALIDATION_FREQUENCY == 0:
+                torch.cuda.empty_cache()
                 self.validate(epoch)
                 self.model.train()
                 self.save_model(epoch)
@@ -109,10 +110,12 @@ class TrainModel:
             # TODO: print val stats...
             self.average_meter_val.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
             self._writer.add_scalar("Loss/validation", loss.item(), epoch_num * len(self.loader_val) + idx)
-            self._writer.add_scalar("Precision/validation", torch.sum(prediction == mask) / (prediction.shape[0] * prediction.shape[1]), epoch_num * len(self.loader_val) + idx)
+            self._writer.add_scalar("Precision/validation", torch.sum(prediction == mask) / (
+                prediction.shape[1] * prediction.shape[2]), epoch_num * len(self.loader_val) + idx)
 
             output_segmented[:, indices[0]: indices[2], indices[1]: indices[3]] += output[0, :, :, :].data
             count_map[indices[0]: indices[2], indices[1]: indices[3]] += 1
+            torch.cuda.empty_cache()
         self._save_segmentation(
             output_segmented.cpu().numpy(), count_map.cpu().numpy(),
             opened.img, opened.mask, path_to_save, idx=epoch_num * len(self.loader_val) + idx)

@@ -48,18 +48,18 @@ class Configuration:
     LEARNING_RATE = 1e-4
     LOSS = CrossEntropyLoss
 
-    MODEL = "DeepLabV3p"
+    MODEL = "CombineNet"
     NUM_CLASSES = 2
     NUM_WORKERS = 2
     NUMBER_OF_EPOCHS = 100
     OUTPUT = "ckpt"
     OUTPUT_FOLDER = "polyps"
     STRIDE = 1
-    STRIDE_VAL = 1
+    STRIDE_VAL = 0.5
     STRIDE_LIMIT = (1000, 1)  # THIS PREVENTS DATASET HALTING
     
     OPTIMALIZER = SGD
-    VALIDATION_FREQUENCY = 2  # num epochs
+    VALIDATION_FREQUENCY = 5  # num epochs
     
     MOMENTUM = 0.9
     WEIGHT_DECAY = 1e-4
