@@ -63,21 +63,13 @@ class TrainModel:
                 self.optimizer.step()
                 self.average_meter_train.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
                 self._writer.add_scalar("Loss/train", loss.item(), idx + len(self.loader_train) * epoch)
-<<<<<<< HEAD
-                self._writer.add_scalar("Precision/train", torch.sum(prediction == mask) / (
-                     prediction.shape[1] * prediction.shape[2]), idx + len(self.loader_train) * epoch)
-=======
                 self._writer.add_scalar("Precision/train", torch.sum(prediction == mask) / (prediction.shape[0] * prediction.shape[1]), idx + len(self.loader_train) * epoch)
->>>>>>> b190a59210f116028110c0bf9a353372b09d1ebd
 
             print("\n" + "-" * 50 + "\n")
             print(self.average_meter_train)
             print("\n" + "-" * 50 + "\n")
             if epoch % self._config.VALIDATION_FREQUENCY == 0:
-<<<<<<< HEAD
                 torch.cuda.empty_cache()
-=======
->>>>>>> b190a59210f116028110c0bf9a353372b09d1ebd
                 self.validate(epoch)
                 self.model.train()
                 self.save_model(epoch)
@@ -106,7 +98,7 @@ class TrainModel:
                 if count_map is not None and output_segmented is not None:
                     self._save_segmentation(
                         output_segmented.cpu().numpy(), count_map.cpu().numpy(), 
-                        opened.img, opened.mask, path_to_save, idx=epoch_num * len(self.loader_val) + idx)
+                        opened.img, opened.mask, path_to_save, idx=idx, epoch=epoch_num)
                 opened = CurrentlyOpened(img_path[0], mask_path[0])
                 img_shape = cv2.imread(opened.img, cv2.IMREAD_GRAYSCALE).shape
                 output_segmented = torch.zeros((self._config.NUM_CLASSES, img_shape[0], img_shape[1])).cuda()
@@ -119,22 +111,13 @@ class TrainModel:
             # TODO: print val stats...
             self.average_meter_val.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
             self._writer.add_scalar("Loss/validation", loss.item(), epoch_num * len(self.loader_val) + idx)
-<<<<<<< HEAD
-            self._writer.add_scalar("Precision/validation", torch.sum(prediction == mask) / (
-                prediction.shape[1] * prediction.shape[2]), epoch_num * len(self.loader_val) + idx)
-
-            output_segmented[:, indices[0]: indices[2], indices[1]: indices[3]] += output[0, :, :, :].data
-            count_map[indices[0]: indices[2], indices[1]: indices[3]] += 1
-            torch.cuda.empty_cache()
-=======
             self._writer.add_scalar("Precision/validation", torch.sum(prediction == mask) / (prediction.shape[0] * prediction.shape[1]), epoch_num * len(self.loader_val) + idx)
 
             output_segmented[:, indices[0]: indices[2], indices[1]: indices[3]] += output[0, :, :, :].data
             count_map[indices[0]: indices[2], indices[1]: indices[3]] += 1
->>>>>>> b190a59210f116028110c0bf9a353372b09d1ebd
-        self._save_segmentation(
-            output_segmented.cpu().numpy(), count_map.cpu().numpy(),
-            opened.img, opened.mask, path_to_save, idx=epoch_num * len(self.loader_val) + idx)
+            torch.cuda.empty_cache()
+        self._save_segmentation(output_segmented.cpu().numpy(), count_map.cpu().numpy(),
+                                opened.img, opened.mask, path_to_save, idx=idx, epoch=epoch_num)
         print("\n" + "-" * 50 + "\n")
         print(self.average_meter_val)
         print("\n" + "-" * 50 + "\n")
@@ -154,8 +137,8 @@ class TrainModel:
         self.loader_train, self.loader_val = get_data_loaders(self._config)
         check_and_make_dirs(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER))
        
-    def _save_segmentation(self, prediction, count_map, img_path, mask_path, name, idx):
-        self._visualizer.process_output(prediction, count_map, img_path, mask_path, name=name, idx=idx)
+    def _save_segmentation(self, prediction, count_map, img_path, mask_path, name, idx, epoch):
+        self._visualizer.process_output(prediction, count_map, img_path, mask_path, name=name, idx=idx, epoch=epoch)
 
     def save_model(self, epoch_number=0):
         now = datetime.now()

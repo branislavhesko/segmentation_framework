@@ -33,14 +33,14 @@ class VisualizationInterface(metaclass=ABCMeta):
         return fig
 
 class VisualizationSaveImages(VisualizationInterface):
-    def visualize_mask():
+    def visualize_mask(self):
         pass
     
     def process_output(self, prediction, count_map, img_path, mask_path, name, **kwargs):
         img_name = os.path.split(img_path)[1][:-4]
         gt = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         img = cv2.imread(img_path, cv2.IMREAD_COLOR)
-        prediction = predicdtion / count_map
+        prediction = prediction / count_map
         fig = self.store_prediction(prediction)
         fig.savefig(os.path.join(name, img_name + "_maps.png"), bbox_inches="tight")
         prediction = np.argmax(prediction, axis=0)
@@ -61,25 +61,25 @@ class VisualizationTensorboard(VisualizationInterface):
         super().__init__(config)
         self._writer: SummaryWriter = writer
 
-    def visualize_mask():
+    def visualize_mask(self):
         pass
     
-    def process_output(self, prediction, count_map, img_path, mask_path, idx, **kwargs):
+    def process_output(self, prediction, count_map, img_path, mask_path, idx, epoch, **kwargs):
         gt = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         img = cv2.imread(img_path, cv2.IMREAD_COLOR)
         prediction = prediction / count_map
         fig = self.store_prediction(prediction)
-        self._writer.add_figure("Prediction/maps", fig, global_step=idx)
+        self._writer.add_figure("Prediction/maps_{}".format(idx), fig, global_step=epoch)
         prediction = np.argmax(prediction, axis=0)
         prediction_gt = vizualize_segmentation(np.array(gt > 0).astype(np.uint8), np.array(prediction > 0).astype(np.uint8))
-        self._writer.add_image("Prediction/colored", torch.from_numpy(map_palette(prediction, generate_palette(
-            self._config.NUM_CLASSES))).permute([2, 0, 1]), global_step=idx)
-        self._writer.add_image("PredictionVsGroundTruth/colored", torch.from_numpy(prediction_gt).permute([2, 0, 1]), global_step=idx)
-        self._writer.add_image("Ground_truth/colored", torch.from_numpy(map_palette(
-            gt > 0, generate_palette(self._config.NUM_CLASSES))).permute([2, 0, 1]), global_step=idx)
-        self._writer.add_image("OriginalImage", torch.from_numpy(img).permute([2, 0, 1]), global_step=idx)
-        self._writer.add_image("OriginalImageAndPrediction", torch.from_numpy(
-            show_segmentation_into_original_image(img, prediction)).permute([2, 0, 1]), global_step=idx)
+        self._writer.add_image("Prediction/colored_{}".format(idx), torch.from_numpy(map_palette(prediction, generate_palette(
+            self._config.NUM_CLASSES))).permute([2, 0, 1]), global_step=epoch)
+        self._writer.add_image("PredictionVsGroundTruth/colored_{}".format(idx), torch.from_numpy(prediction_gt).permute([2, 0, 1]), global_step=epoch)
+        self._writer.add_image("Ground_truth/colored_{}".format(idx), torch.from_numpy(map_palette(
+            gt > 0, generate_palette(self._config.NUM_CLASSES))).permute([2, 0, 1]), global_step=epoch)
+        self._writer.add_image("OriginalImage/_{}".format(idx), torch.from_numpy(img).permute([2, 0, 1]), global_step=epoch)
+        self._writer.add_image("OriginalImageAndPrediction/colored_{}".format(idx), torch.from_numpy(
+            show_segmentation_into_original_image(img, prediction)).permute([2, 0, 1]), global_step=epoch)
 
 
 visualizers = {

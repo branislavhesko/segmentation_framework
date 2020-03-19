@@ -48,30 +48,18 @@ class Configuration:
     LEARNING_RATE = 1e-4
     LOSS = CrossEntropyLoss
 
-<<<<<<< HEAD
     MODEL = "CombineNet"
-=======
-    MODEL = "DeepLabV3p"
->>>>>>> b190a59210f116028110c0bf9a353372b09d1ebd
     NUM_CLASSES = 2
     NUM_WORKERS = 2
     NUMBER_OF_EPOCHS = 100
     OUTPUT = "ckpt"
     OUTPUT_FOLDER = "polyps"
     STRIDE = 1
-<<<<<<< HEAD
-    STRIDE_VAL = 0.5
-    STRIDE_LIMIT = (1000, 1)  # THIS PREVENTS DATASET HALTING
-    
-    OPTIMALIZER = SGD
-    VALIDATION_FREQUENCY = 5  # num epochs
-=======
     STRIDE_VAL = 1
     STRIDE_LIMIT = (1000, 1)  # THIS PREVENTS DATASET HALTING
     
     OPTIMALIZER = SGD
     VALIDATION_FREQUENCY = 2  # num epochs
->>>>>>> b190a59210f116028110c0bf9a353372b09d1ebd
     
     MOMENTUM = 0.9
     WEIGHT_DECAY = 1e-4
@@ -103,7 +91,7 @@ class Configuration:
 
 
 class TickColonSegmentation(Configuration):
-    CHECKPOINT = ""
+    CHECKPOINT = "CombineNet_epoch84__03-14-2020_09_43_01_NUM_CLASSES2_mean_loss0.068_accuracy0.975_mean_IOU0.888_mean_DICE0.926.pth"
     NUM_CLASSES = 2
     OUTPUT_FOLDER = "tick"
     DATASET = "TickDataLoaderCrop2D"
