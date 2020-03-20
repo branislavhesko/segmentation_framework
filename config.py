@@ -38,9 +38,9 @@ available_models = {
 
 class Configuration:
     BATCH_SIZE = 2
-    CHECKPOINT = "CombineNet_epoch36__09-21-2019_23_09_55_NUM_CLASSES2_mean_loss0.121_accuracy0.975_mean_IOU0.792_mean_DICE0.839.pth"
+    CHECKPOINT = ""
 
-    CROP_SIZE = 256
+    CROP_SIZE = 512
     CUDA = True
     DATASET = "DataLoaderCrop2D"
     FOLDER_WITH_IMAGE_DATA = "./data"
@@ -54,9 +54,9 @@ class Configuration:
     NUMBER_OF_EPOCHS = 100
     OUTPUT = "ckpt"
     OUTPUT_FOLDER = "polyps"
-    STRIDE = 1
-    STRIDE_VAL = 1
-    STRIDE_LIMIT = (1000, 1)  # THIS PREVENTS DATASET HALTING
+    STRIDE = 0.5
+    STRIDE_VAL = 0.5
+    STRIDE_LIMIT = (1000, 0.5)  # THIS PREVENTS DATASET HALTING
     
     OPTIMALIZER = SGD
     VALIDATION_FREQUENCY = 2  # num epochs

@@ -22,30 +22,30 @@ class Predictor:
     @torch.no_grad()
     def predict(self, image):
         assert len(image.shape) == 3, "Image should be in RGB format for now."
-        mask = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) > 0
         self._image_loader.set_image_and_mask(image, image[:, :, 0])
         indices = self._image_loader.get_indices()
-        count_map = np.zeros(image.shape[:2])
+        count_map = np.zeros(image.shape[:2]).astype(np.float32)
         prediction = torch.zeros((self._config.NUM_CLASSES, *image.shape[:2]))
         if self._cuda:
             prediction = prediction.cuda()
         for idx in tqdm(indices):
-            input_slice = image[idx[0]: idx[2], idx[1]: idx[3], :]
+            input_slice = np.copy(image[idx[0]: idx[2], idx[1]: idx[3], :])
             input_slice = self._transform(input_slice, input_slice[:, :, 0])[0]
             if self._cuda:
                 input_slice = input_slice.cuda()
             output = self.model(input_slice.unsqueeze(dim=0))
-            prediction[:, idx[0]: idx[2], idx[1]: idx[3]] += torch.squeeze(output.data)
-            count_map[idx[0]: idx[2], idx[1]: idx[3]] += 1
+            prediction[:, idx[0]: idx[2], idx[1]: idx[3]] += torch.squeeze(output[0, :, :, :].data)
+            count_map[idx[0]: idx[2], idx[1]: idx[3]] += 1.
 
         prediction = prediction.cpu().numpy() / count_map
-        return np.argmax(prediction, axis=0) & mask
+        return np.argmax(prediction, axis=0)
 
     def _load_model(self, weights_path: str):
         self.model = available_models[self._config.MODEL](self._config.NUM_CLASSES)
-        self.model.load_state_dict(torch.load(weights_path, map_location="cpu"))
         if self._cuda:
             self.model = self.model.cuda()
+        self.model.load_state_dict(torch.load(weights_path))
+        self.model.eval()
 
 if __name__ == "__main__":
     import cv2
@@ -56,8 +56,7 @@ if __name__ == "__main__":
     for image in images:
         print("Processing image: {}".format(image))
         base_name = os.path.splitext(os.path.basename(image))[0]
-
         img = np.array(cv2.imread(image, cv2.IMREAD_COLOR)).astype(np.float32)
-        img = img / 255.        
+        img = img / 255.
         mask = predictor.predict(img)
         cv2.imwrite(os.path.join("./data/output/", base_name + ".png"), mask * 255)

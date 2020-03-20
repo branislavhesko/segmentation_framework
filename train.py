@@ -42,8 +42,8 @@ class TrainModel:
         self._visualizer = visualizers[self._config.VISUALIZER](self._config, self._writer)
 
     def train(self):
+        self.validate(-1)
         for epoch in range(self._config.NUMBER_OF_EPOCHS):
-            self.validate(-1)
             self.model.train()
             self.average_meter_train = StatsMeter(self._config.NUM_CLASSES)
             tqdm_loader = tqdm(enumerate(self.loader_train))
@@ -103,8 +103,9 @@ class TrainModel:
                 img_shape = cv2.imread(opened.img, cv2.IMREAD_GRAYSCALE).shape
                 output_segmented = torch.zeros((self._config.NUM_CLASSES, img_shape[0], img_shape[1])).cuda()
                 count_map = torch.zeros(img_shape).cuda()
-            
+            print(img.max())
             output = self.model(img)
+
             prediction = torch.argmax(output, dim=1)
             loss = self.loss(output, mask)
 
