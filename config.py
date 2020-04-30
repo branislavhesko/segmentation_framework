@@ -96,3 +96,7 @@ class TickColonSegmentation(Configuration):
     OUTPUT_FOLDER = "tick"
     DATASET = "TickDataLoaderCrop2D"
     VISUALIZER = "VisualizationTensorboard"
+
+
+class RefugeeOpticDiscSegmentation(Configuration):
+    pass
