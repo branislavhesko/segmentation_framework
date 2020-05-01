@@ -89,6 +89,14 @@ class Configuration:
     }
     VISUALIZER = "VisualizationSaveImages"
 
+    def serialize(self):
+        output = {}
+        for key in list(filter(lambda x: x.isupper(), dir(self))):
+            value = getattr(self, key)
+            if any(map(lambda type_: isinstance(value, type_), [str, float, int, tuple, list, dict])):
+                output[key] = str(value)
+        return output
+
 
 class TickColonSegmentation(Configuration):
     CHECKPOINT = "CombineNet_epoch84__03-14-2020_09_43_01_NUM_CLASSES2_mean_loss0.068_accuracy0.975_mean_IOU0.888_mean_DICE0.926.pth"
@@ -98,5 +106,20 @@ class TickColonSegmentation(Configuration):
     VISUALIZER = "VisualizationTensorboard"
 
 
-class RefugeeOpticDiscSegmentation(Configuration):
-    pass
+class RefugeeCupDiscSegmentationConfig(Configuration):
+    CHECKPOINT = ""
+    NUM_CLASSES = 3
+    OUTPUT_FOLDER = "refugee"
+    DATASET = "RefugeeDataset"
+    SUBFOLDERS = {
+        ImagesSubfolder.IMAGES: "images/*.jpg",
+        ImagesSubfolder.MASKS: "GT_disc_cup/*.bmp"
+    }
+    FOLDER_WITH_IMAGE_DATA = "../data"
+    STRIDE_LIMIT = (2000, 0.5)
+    PATH_TO_SAVED_SUBIMAGE_INFO = "../data/refugee_data.pickle"
+
+
+if __name__ == "__main__":
+    cfg = RefugeeCupDiscSegmentationConfig()
+    print(cfg.serialize())

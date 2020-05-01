@@ -1,18 +1,17 @@
+import pickle
+
 import numpy as np
 import cv2
 import os
-from PIL import Image
 
 from config import Configuration
-from loaders.subimage_info_holder import get_number_of_subimages, ImageLoader, InfoEnum, SubImageInfoHolder
-from utils.transforms import Clahe
+from loaders.subimage_info_holder import InfoEnum, SubImageInfoHolder
 
 
-# TODO: it remains to make better border image indexing
 class DataLoaderCrop2D:
 
     def __init__(self, img_files, mask_files=(), crop_size=(512, 512),
-                 stride=0.1, transform=lambda x: x):
+                 stride=0.1, transform=lambda x: x, config: Configuration = Configuration()):
         self._img_files = img_files
         self._mask_files = mask_files
         self._stride = stride
@@ -20,12 +19,24 @@ class DataLoaderCrop2D:
         self._index_of_opened_file = 0
         self._transform = transform
         self._crop_size = crop_size
-        self.sub_image_info_holder = SubImageInfoHolder(self._img_files, self._mask_files, self._crop_size, self._stride)
-        if Configuration.PATH_TO_SAVED_SUBIMAGE_INFO is not None and os.path.exists(Configuration.PATH_TO_SAVED_SUBIMAGE_INFO):
-            self.sub_image_info_holder.load_info_dict(Configuration.PATH_TO_SAVED_SUBIMAGE_INFO)
+        self._config = config
+        self.sub_image_info_holder = SubImageInfoHolder(
+            self._img_files, self._mask_files, self._crop_size, self._stride, config=self._config)
+        if self._config.PATH_TO_SAVED_SUBIMAGE_INFO is not None and os.path.exists(
+                self._config.PATH_TO_SAVED_SUBIMAGE_INFO) and self._is_subimage_file_valid():
+            self.sub_image_info_holder.load_info_dict(self._config.PATH_TO_SAVED_SUBIMAGE_INFO)
         else:
             self.sub_image_info_holder.fill_info_dict()
         print(self.sub_image_info_holder)
+
+    def _is_subimage_file_valid(self):
+        with open(self._config.PATH_TO_SAVED_SUBIMAGE_INFO, "rb") as fp:
+            data = pickle.load(fp)
+        if data["config"] == self._config.serialize():
+            print("Config is equal to serialized dataset info, allowing loading it!")
+            return True
+        print("Config is not equal to serialized dataset info, creating new config!")
+        return False
 
     def __len__(self):
         return len(self.sub_image_info_holder.info_dict[InfoEnum.INDEX])
@@ -42,14 +53,13 @@ class DataLoaderCrop2D:
 
     @staticmethod
     def _crop_image_and_mask(img, mask, info):
-        slice = info.slice
+        slice_ = info.slice
         if len(img.shape) > 2: 
-            return (img[slice[0] : slice[2], slice[1]: slice[3], :],
-                mask[slice[0] : slice[2], slice[1]: slice[3]])
+            return (img[slice_[0]: slice_[2], slice_[1]: slice_[3], :],
+                    mask[slice_[0]: slice_[2], slice_[1]: slice_[3]])
         else:
-            return (img[slice[0] : slice[2], slice[1]: slice[3]],
-                mask[slice[0] : slice[2], slice[1]: slice[3]])
-
+            return (img[slice_[0]: slice_[2], slice_[1]: slice_[3]],
+                    mask[slice_[0]: slice_[2], slice_[1]: slice_[3]])
 
 
 def reconstruct_image(subimages, indices, original_shape, count_map=None):

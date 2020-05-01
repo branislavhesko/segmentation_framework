@@ -3,7 +3,7 @@ import cv2
 from skimage.transform import resize
 import torch
 from scipy.ndimage.interpolation import rotate
-from PIL import Image
+
 
 class Normalize:
     def __init__(self, means, stds):

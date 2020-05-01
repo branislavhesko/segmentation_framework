@@ -9,7 +9,7 @@ class TickDataLoaderCrop2D(DataLoaderCrop2D):
         "COLON": (1, (0, 0.5, 0.5))
     }
         
-    def __init__(self, img_files, mask_files=(), crop_size=(512, 512),
+    def __init__(self, img_files, mask_files, crop_size=(512, 512),
                  stride=0.1, transform=lambda x: x):
         super().__init__(img_files, mask_files, crop_size,
                  stride, transform)    

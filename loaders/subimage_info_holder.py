@@ -1,13 +1,11 @@
 from collections import namedtuple
 from enum import auto, Enum
-import os
 import pickle
 import sys
 from tqdm import tqdm
 
 import cv2
 import numpy as np
-from PIL import Image
 
 from config import Configuration
 
@@ -24,10 +22,11 @@ class SubImageInfoHolder:
 
     Info = namedtuple("Info", ["img", "mask", "img_number", "slice", "index"])
 
-    def __init__(self, img_files, mask_files, crop_size, stride):
+    def __init__(self, img_files, mask_files, crop_size, stride, config: Configuration = Configuration()):
         self._img_files = img_files
         self._stride = stride
         self._mask_files = mask_files
+        self._config = config
         assert len(self._img_files) == len(self._mask_files)
         self.image_loader = ImageLoader(crop_size, stride)
         self.info_dict = {
@@ -42,8 +41,8 @@ class SubImageInfoHolder:
         for image_number, (img, mask) in tqdm(enumerate(list(zip(self._img_files, self._mask_files)))):
             img_matrix = np.asarray(cv2.imread(img, cv2.IMREAD_COLOR))
             mask_matrix = np.asarray(cv2.imread(mask, cv2.IMREAD_GRAYSCALE))
-            if img_matrix.shape[0] > Configuration.STRIDE_LIMIT[0]:
-                stride = Configuration.STRIDE_LIMIT[1]
+            if img_matrix.shape[0] > self._config.STRIDE_LIMIT[0]:
+                stride = self._config.STRIDE_LIMIT[1]
             else:
                 stride = self._stride
             self.image_loader.set_image_and_mask(img_matrix, mask_matrix, stride)
@@ -54,12 +53,13 @@ class SubImageInfoHolder:
                 self.info_dict[InfoEnum.INDEX].append(image_number)
                 self.info_dict[InfoEnum.NUMBER_OF_INDICES].append(len(indices))
                 self.info_dict[InfoEnum.SLICE_INDICES].append(index)
-        if Configuration.PATH_TO_SAVED_SUBIMAGE_INFO is not None:
-            self.save_info_dict(Configuration.PATH_TO_SAVED_SUBIMAGE_INFO)
+        if self._config.PATH_TO_SAVED_SUBIMAGE_INFO is not None:
+            self.save_info_dict(self._config.PATH_TO_SAVED_SUBIMAGE_INFO)
 
     def save_info_dict(self, filename):
+        serialized_dict = self._config.serialize()
         file = open(filename, "wb")
-        pickle.dump(self.info_dict, file)
+        pickle.dump({**self.info_dict, **{"config": serialized_dict}}, file)
         file.close()
 
     def load_info_dict(self, filename):
@@ -102,7 +102,6 @@ class ImageLoader:
 
     def __getitem__(self, index):
         indices = self._indices[index]
-        #print(indices)
         return (
             self._image[indices[0]:indices[0] + indices[2], indices[1]:indices[1] + indices[3], :],
             self._mask[indices[0]:indices[0] + indices[2], indices[1]:indices[1] + indices[3]],
@@ -144,8 +143,8 @@ class ImageLoader:
 def get_number_of_subimages(shape, crop_size, stride):
     y_dir = int((shape[0] - crop_size[0]) // (crop_size[0] * stride) + 2)
     x_dir = int((shape[1] - crop_size[1]) // (crop_size[1] * stride) + 2)
-    #print(y_dir)
-    #print(y_dir)
+    # print(y_dir)
+    # print(y_dir)
     return np.array((y_dir, x_dir))
 
 
@@ -160,6 +159,6 @@ if __name__ == "__main__":
 
     sub.fill_info_dict()
 
-    for i in range(1000):
-        print(sub.get_info_at_index(i))
+    for i_ in range(1000):
+        print(sub.get_info_at_index(i_))
     print(sub)
