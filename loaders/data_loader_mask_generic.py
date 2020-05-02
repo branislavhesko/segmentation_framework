@@ -46,10 +46,13 @@ class DataLoaderCrop2D:
         img = np.array(cv2.imread(info.img, cv2.IMREAD_COLOR)).astype(np.float32)
         img = img / 255.
         mask = cv2.imread(info.mask, cv2.IMREAD_GRAYSCALE)
-        mask[mask > 0] = 1
+        self._process_mask(mask)
         data = (*self._transform(*self._crop_image_and_mask(img, mask, info)),
                 info.slice, info.img, info.mask)
         return data
+
+    def _process_mask(self, mask):
+        mask[mask > 0] = 1
 
     @staticmethod
     def _crop_image_and_mask(img, mask, info):

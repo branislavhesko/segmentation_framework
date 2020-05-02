@@ -111,13 +111,20 @@ class RefugeeCupDiscSegmentationConfig(Configuration):
     NUM_CLASSES = 3
     OUTPUT_FOLDER = "refugee"
     DATASET = "RefugeeDataset"
+    FOLDERS = {
+        NetMode.TRAIN: "train",
+        NetMode.VALIDATE: "validate"
+    }
     SUBFOLDERS = {
         ImagesSubfolder.IMAGES: "images/*.jpg",
-        ImagesSubfolder.MASKS: "GT_disc_cup/*.bmp"
+        ImagesSubfolder.MASKS: "masks/*.bmp"
     }
     FOLDER_WITH_IMAGE_DATA = "../data"
     STRIDE_LIMIT = (2000, 0.5)
     PATH_TO_SAVED_SUBIMAGE_INFO = "../data/refugee_data.pickle"
+    CUDA = False
+    VISUALIZER = "VisualizationTensorboard"
+
 
 
 if __name__ == "__main__":

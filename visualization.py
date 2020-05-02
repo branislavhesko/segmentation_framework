@@ -23,7 +23,7 @@ class VisualizationInterface(metaclass=ABCMeta):
         pass
     
     @abstractmethod
-    def process_output(self, prediction, count_map, img_path, mask_path, name):
+    def process_output(self, prediction, count_map, img_path, mask_path, *args, **kwargs):
         pass
 
     def store_prediction(self, prediction):
@@ -31,6 +31,7 @@ class VisualizationInterface(metaclass=ABCMeta):
         for idx, ax in enumerate(axs):    
             ax.imshow(prediction[idx, :, :])
         return fig
+
 
 class VisualizationSaveImages(VisualizationInterface):
     def visualize_mask(self):

@@ -14,7 +14,7 @@ from torch.utils.data.dataloader import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from config import available_models, Configuration, TickColonSegmentation
+from config import available_models, Configuration, TickColonSegmentation, RefugeeCupDiscSegmentationConfig
 from helper_scripts.utils import check_and_make_dirs
 from loaders.data_loader_mask_generic import DataLoaderCrop2D
 from loaders.get_data_loader import get_data_loaders
@@ -29,6 +29,7 @@ class TrainModel:
     
     def __init__(self, config: Configuration):
         self._config = config
+        self.device = "cuda" if self._config.CUDA and torch.cuda.is_available() else "cpu"
         self.model = None
         self.loss = None
         self.optimizer = None
@@ -39,7 +40,7 @@ class TrainModel:
         self._writer = SummaryWriter()
         self._initialize()
         self._load_weights_if_available()
-        self._visualizer = visualizers[self._config.VISUALIZER](self._config, self._writer)
+        self._visualizer = visualizers[self._config.VISUALIZER](self._config, writer=self._writer)
 
     def train(self):
         self.validate(-1)
@@ -52,9 +53,8 @@ class TrainModel:
                 tqdm_loader.refresh()
                 img, mask, indices, img_path, mask_path = data
                 self.optimizer.zero_grad()
-                if self._config.CUDA:
-                    img = img.cuda()
-                    mask = mask.cuda()
+                img = img.to(self.device)
+                mask = mask.to(self.device)
 
                 output = self.model(img)
                 prediction = torch.argmax(output, dim=1)
@@ -63,7 +63,8 @@ class TrainModel:
                 self.optimizer.step()
                 self.average_meter_train.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
                 self._writer.add_scalar("Loss/train", loss.item(), idx + len(self.loader_train) * epoch)
-                self._writer.add_scalar("Precision/train", torch.sum(prediction == mask) / (prediction.shape[0] * prediction.shape[1]), idx + len(self.loader_train) * epoch)
+                self._writer.add_scalar("Precision/train", torch.sum(prediction == mask) / (
+                        prediction.shape[0] * prediction.shape[1]), idx + len(self.loader_train) * epoch)
 
             print("\n" + "-" * 50 + "\n")
             print(self.average_meter_train)
@@ -74,6 +75,7 @@ class TrainModel:
                 self.model.train()
                 self.save_model(epoch)
 
+    @torch.no_grad()
     def validate(self, epoch_num=0):
         self.model.eval()
         path_to_save = os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, str(epoch_num) + "_epoch")
@@ -90,9 +92,8 @@ class TrainModel:
         for idx, data in tqdm(enumerate(self.loader_val)):
             img, mask, indices, img_path, mask_path = data
 
-            if self._config.CUDA:
-                img = img.cuda()
-                mask = mask.cuda()
+            img = img.to(self.device)
+            mask = mask.to(self.device)
 
             if opened.img != img_path[0]:
                 if count_map is not None and output_segmented is not None:
@@ -101,9 +102,9 @@ class TrainModel:
                         opened.img, opened.mask, path_to_save, idx=idx, epoch=epoch_num)
                 opened = CurrentlyOpened(img_path[0], mask_path[0])
                 img_shape = cv2.imread(opened.img, cv2.IMREAD_GRAYSCALE).shape
-                output_segmented = torch.zeros((self._config.NUM_CLASSES, img_shape[0], img_shape[1])).cuda()
-                count_map = torch.zeros(img_shape).cuda()
-            print(img.max())
+                output_segmented = torch.zeros((
+                    self._config.NUM_CLASSES, img_shape[0], img_shape[1]), device=self.device)
+                count_map = torch.zeros(img_shape, device=self.device)
             output = self.model(img)
 
             prediction = torch.argmax(output, dim=1)
@@ -112,7 +113,8 @@ class TrainModel:
             # TODO: print val stats...
             self.average_meter_val.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
             self._writer.add_scalar("Loss/validation", loss.item(), epoch_num * len(self.loader_val) + idx)
-            self._writer.add_scalar("Precision/validation", torch.sum(prediction == mask) / (prediction.shape[0] * prediction.shape[1]), epoch_num * len(self.loader_val) + idx)
+            self._writer.add_scalar("Precision/validation", torch.sum(prediction == mask) / (
+                    prediction.shape[0] * prediction.shape[1]), epoch_num * len(self.loader_val) + idx)
 
             output_segmented[:, indices[0]: indices[2], indices[1]: indices[3]] += output[0, :, :, :].data
             count_map[indices[0]: indices[2], indices[1]: indices[3]] += 1
@@ -124,9 +126,7 @@ class TrainModel:
         print("\n" + "-" * 50 + "\n")
 
     def _initialize(self):
-        self.model = available_models[self._config.MODEL](self._config.NUM_CLASSES)
-        if self._config.CUDA:
-            self.model.cuda()
+        self.model = available_models[self._config.MODEL](self._config.NUM_CLASSES).to(self.device)
         print(self.model)
         self.loss = self._config.LOSS(size_average=True)
         self.optimizer = self._config.OPTIMALIZER([
@@ -162,5 +162,5 @@ class TrainModel:
 
 
 if __name__ == "__main__":
-    trainer = TrainModel(TickColonSegmentation())
+    trainer = TrainModel(RefugeeCupDiscSegmentationConfig())
     trainer.train()
