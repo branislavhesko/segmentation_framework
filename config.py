@@ -40,6 +40,7 @@ class Configuration:
     BATCH_SIZE = 2
     CHECKPOINT = ""
 
+    CLASS_VALUE = -1
     CROP_SIZE = 512
     CUDA = True
     DATASET = "DataLoaderCrop2D"
@@ -97,6 +98,10 @@ class Configuration:
                 output[key] = str(value)
         return output
 
+    def process_mask(self, mask):
+        mask[mask > 0] = 1
+        return mask
+
 
 class TickColonSegmentation(Configuration):
     CHECKPOINT = "CombineNet_epoch84__03-14-2020_09_43_01_NUM_CLASSES2_mean_loss0.068_accuracy0.975_mean_IOU0.888_mean_DICE0.926.pth"
@@ -108,8 +113,9 @@ class TickColonSegmentation(Configuration):
 
 class RefugeeCupDiscSegmentationConfig(Configuration):
     CHECKPOINT = ""
-    NUM_CLASSES = 3
-    OUTPUT_FOLDER = "refugee"
+    NUM_CLASSES = 2
+    CLASS_VALUE = 128
+    OUTPUT_FOLDER = "refugee_cup"
     DATASET = "RefugeeDataset"
     FOLDERS = {
         NetMode.TRAIN: "train",
@@ -120,11 +126,17 @@ class RefugeeCupDiscSegmentationConfig(Configuration):
         ImagesSubfolder.MASKS: "masks/*.bmp"
     }
     FOLDER_WITH_IMAGE_DATA = "../data"
+    STRIDE_VAL = 1.
+    STRIDE = 1.
     STRIDE_LIMIT = (2000, 0.5)
     PATH_TO_SAVED_SUBIMAGE_INFO = "../data/refugee_data.pickle"
     CUDA = False
     VISUALIZER = "VisualizationTensorboard"
 
+    def process_mask(self, mask):
+        mask[mask <= self.CLASS_VALUE] = 1
+        mask[mask > self.CLASS_VALUE] = 0
+        return mask
 
 
 if __name__ == "__main__":

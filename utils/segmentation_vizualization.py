@@ -4,6 +4,18 @@ import numpy as np
 import scipy.io as sio
 
 
+COLORS = [
+    (0, 0, 0),
+    (255, 0, 0),
+    (0, 255, 0),
+    (0, 0, 255),
+    (255, 255, 0),
+    (0, 255, 255),
+    (255, 0, 255),
+    (255, 255, 255)
+]
+
+
 def vizualize_segmentation(img1, img2):
     result_img = np.zeros((*img1.shape, 3))
     intersetcion = cv2.bitwise_and(img1, img2)
@@ -33,14 +45,8 @@ def show_segmentation_into_original_image(img, segmented_img):
 
 
 def show_segmentations_into_original_image(img, segmented_img):
-    colormaps = [[255, 0, 0],
-                 [0, 255, 0],
-                 [0, 0, 255],
-                 [255, 0, 255],
-                 [0, 255, 255],
-                 ]
 
-    for index, colormap in enumerate(colormaps):
+    for index, colormap in enumerate(COLORS[1:]):
         if colormap[0] == 0:
             img[segmented_img == index+1, 0] = 0
         if colormap[1] == 0: 
@@ -59,15 +65,18 @@ def merge_images(img1, img2, mask):
 
 
 def generate_palette(num_classes):
+    if num_classes < len(COLORS):
+        return COLORS[:num_classes]
     palette = [(0, 0, 0)]
-    for i in range(num_classes - 1):
-        palette.append((i, num_classes // 2 + i // 2, 255 - i))
+    for i in range(num_classes):
+        value = 255 // (num_classes - 1) * i
+        palette.append((value, value, 255 - value))
     return palette
 
 
 def map_palette(image, palette):
     img_colored = np.zeros((*image.shape, 3))
     for i in range(len(palette)):
-        img_colored[image == i] = palette[i]
+        img_colored[image == i] = np.array(palette[i]) / 255.
 
     return img_colored

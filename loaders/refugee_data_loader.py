@@ -14,12 +14,6 @@ class RefugeeSegmentationDataset(DataLoaderCrop2D):
                  stride=0.1, transform=lambda x: x):
         super().__init__(img_files, mask_files, crop_size, stride, transform, RefugeeCupDiscSegmentationConfig())
 
-    def _process_mask(self, mask):
-        mask[mask == 0] = 1
-        mask[mask == 128] = 2
-        mask[mask == 255] = 0
-        return mask
-
 
 if __name__ == "__main__":
     import glob
