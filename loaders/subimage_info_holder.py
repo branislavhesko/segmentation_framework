@@ -128,8 +128,8 @@ class ImageLoader:
                 col_reversed = self._image.shape[1] - int(col)
                 indices_reversed = (row_reversed - self._crop_size[0], col_reversed - self._crop_size[1], 
                                     row_reversed, col_reversed, -1)
-                self._indices.append(indices)
-                self._indices.append(indices_reversed)
+                self._indices.append(indices) if not indices in self._indices else None
+                self._indices.append(indices_reversed) if not indices_reversed in self._indices else None
         return self._indices
 
     def set_image_and_mask(self, image, mask, stride=None):

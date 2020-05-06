@@ -65,12 +65,14 @@ class VisualizationTensorboard(VisualizationInterface):
     def visualize_mask(self):
         pass
     
-    def process_output(self, prediction, count_map, img_path, mask_path, idx, epoch, **kwargs):
+    def process_output(self, prediction, count_map, img_path, mask_path, **kwargs):
+        idx = kwargs.pop("idx")
+        epoch = kwargs.pop("epoch")
         gt = self._config.process_mask(cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE))
         img = cv2.imread(img_path, cv2.IMREAD_COLOR)
         prediction = prediction / count_map
         fig = self.store_prediction(prediction)
-        self._writer.add_figure("Prediction/maps_{}".format(idx), fig, global_step=epoch)
+        self._writer.add_figure("PredictionMaps_{}".format(idx), fig, global_step=epoch)
         prediction = np.argmax(prediction, axis=0)
         prediction_gt = vizualize_segmentation(gt.astype(np.uint8), prediction.astype(np.uint8))
         self._writer.add_image("Prediction/colored_{}".format(idx),

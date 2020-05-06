@@ -39,7 +39,7 @@ available_models = {
 class Configuration:
     BATCH_SIZE = 2
     CHECKPOINT = ""
-
+    SAVE_FREQUENCY = 10
     CLASS_VALUE = -1
     CROP_SIZE = 512
     CUDA = True
@@ -126,11 +126,11 @@ class RefugeeCupDiscSegmentationConfig(Configuration):
         ImagesSubfolder.MASKS: "masks/*.bmp"
     }
     FOLDER_WITH_IMAGE_DATA = "../data"
-    STRIDE_VAL = 1.
-    STRIDE = 1.
-    STRIDE_LIMIT = (2000, 0.5)
+    STRIDE_VAL = 0.5
+    STRIDE = 0.5
+    STRIDE_LIMIT = (2000, 1.)
     PATH_TO_SAVED_SUBIMAGE_INFO = "../data/refugee_data.pickle"
-    CUDA = False
+    CUDA = True
     VISUALIZER = "VisualizationTensorboard"
 
     def process_mask(self, mask):

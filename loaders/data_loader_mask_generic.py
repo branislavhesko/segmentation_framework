@@ -22,7 +22,7 @@ class DataLoaderCrop2D:
         self._config = config
         self.sub_image_info_holder = SubImageInfoHolder(
             self._img_files, self._mask_files, self._crop_size, self._stride, config=self._config)
-        if self._config.PATH_TO_SAVED_SUBIMAGE_INFO is not None and os.path.exists(
+        if False and self._config.PATH_TO_SAVED_SUBIMAGE_INFO is not None and os.path.exists(
                 self._config.PATH_TO_SAVED_SUBIMAGE_INFO) and self._is_subimage_file_valid():
             self.sub_image_info_holder.load_info_dict(self._config.PATH_TO_SAVED_SUBIMAGE_INFO)
         else:

@@ -44,6 +44,7 @@ class TrainModel:
 
     def train(self):
         self.validate(-1)
+        loss, output, prediction = None, None, None
         for epoch in range(self._config.NUMBER_OF_EPOCHS):
             self.model.train()
             self.average_meter_train = StatsMeter(self._config.NUM_CLASSES)
@@ -66,11 +67,13 @@ class TrainModel:
                 self._writer.add_scalar("Precision/train", torch.sum(prediction == mask) / (
                         prediction.shape[0] * prediction.shape[1]), idx + len(self.loader_train) * epoch)
 
+            del loss, output,  prediction
             print("\n" + "-" * 50 + "\n")
             print(self.average_meter_train)
             print("\n" + "-" * 50 + "\n")
             if epoch % self._config.VALIDATION_FREQUENCY == 0:
                 torch.cuda.empty_cache()
+                self.optimizer.zero_grad()
                 self.validate(epoch)
                 self.model.train()
                 self.save_model(epoch)
@@ -88,7 +91,7 @@ class TrainModel:
         opened = CurrentlyOpened(None, None)
         count_map = None
         output_segmented = None
-
+        image_id = 0
         for idx, data in tqdm(enumerate(self.loader_val)):
             img, mask, indices, img_path, mask_path = data
 
@@ -97,9 +100,11 @@ class TrainModel:
 
             if opened.img != img_path[0]:
                 if count_map is not None and output_segmented is not None:
-                    self._save_segmentation(
-                        output_segmented.cpu().numpy(), count_map.cpu().numpy(), 
-                        opened.img, opened.mask, path_to_save, idx=idx, epoch=epoch_num)
+                    image_id += 1
+                    if image_id % self._config.SAVE_FREQUENCY == 0:
+                        self._save_segmentation(
+                            output_segmented.cpu().numpy(), count_map.cpu().numpy(),
+                            opened.img, opened.mask, path_to_save, idx=idx, epoch=epoch_num)
                 opened = CurrentlyOpened(img_path[0], mask_path[0])
                 img_shape = cv2.imread(opened.img, cv2.IMREAD_GRAYSCALE).shape
                 output_segmented = torch.zeros((
@@ -124,6 +129,8 @@ class TrainModel:
         print("\n" + "-" * 50 + "\n")
         print(self.average_meter_val)
         print("\n" + "-" * 50 + "\n")
+        torch.cuda.empty_cache()
+        del loss, output_segmented, prediction, count_map
 
     def _initialize(self):
         self.model = available_models[self._config.MODEL](self._config.NUM_CLASSES).to(self.device)
@@ -145,7 +152,7 @@ class TrainModel:
         now = datetime.now()
         epoch_str = "_epoch{}_".format(epoch_number)
         now = now.strftime("_%m-%d-%Y_%H_%M_%S_")
-        filename = str(self.model) + epoch_str + now + str(self.average_meter_val) + ".pth"
+        filename = str(self._config.MODEL) + epoch_str + now + str(self.average_meter_val) + ".pth"
         torch.save(self.model.state_dict(), os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, filename))
         torch.save(self.optimizer.state_dict(), os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, "opt_" + filename))
         
