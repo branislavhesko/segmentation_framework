@@ -111,7 +111,7 @@ class TickColonSegmentation(Configuration):
     VISUALIZER = "VisualizationTensorboard"
 
 
-class RefugeeCupDiscSegmentationConfig(Configuration):
+class RefugeeDiscSegmentationConfig(Configuration):
     CHECKPOINT = ""
     NUM_CLASSES = 2
     CLASS_VALUE = 128
@@ -139,6 +139,12 @@ class RefugeeCupDiscSegmentationConfig(Configuration):
         return mask
 
 
+class RefugeeCupSegmentationConfig(RefugeeDiscSegmentationConfig):
+    CLASS_VALUE = 10
+    OUTPUT_FOLDER = "refugee_cup_correct"
+    PATH_TO_SAVED_SUBIMAGE_INFO = None
+
+
 if __name__ == "__main__":
-    cfg = RefugeeCupDiscSegmentationConfig()
+    cfg = RefugeeDiscSegmentationConfig()
     print(cfg.serialize())

@@ -14,7 +14,8 @@ from torch.utils.data.dataloader import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from config import available_models, Configuration, TickColonSegmentation, RefugeeCupDiscSegmentationConfig
+from config import available_models, Configuration, TickColonSegmentation, \
+    RefugeeDiscSegmentationConfig, RefugeeCupSegmentationConfig
 from helper_scripts.utils import check_and_make_dirs
 from loaders.data_loader_mask_generic import DataLoaderCrop2D
 from loaders.get_data_loader import get_data_loaders
@@ -169,5 +170,5 @@ class TrainModel:
 
 
 if __name__ == "__main__":
-    trainer = TrainModel(RefugeeCupDiscSegmentationConfig())
+    trainer = TrainModel(RefugeeCupSegmentationConfig())
     trainer.train()
