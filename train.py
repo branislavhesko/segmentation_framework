@@ -15,7 +15,7 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from config import available_models, Configuration, TickColonSegmentation, \
-    RefugeeDiscSegmentationConfig, RefugeeCupSegmentationConfig
+    RefugeeDiscSegmentationConfig, RefugeeCupSegmentationConfig, ThyroidConfig
 from helper_scripts.utils import check_and_make_dirs
 from loaders.data_loader_mask_generic import DataLoaderCrop2D
 from loaders.get_data_loader import get_data_loaders
@@ -87,7 +87,6 @@ class TrainModel:
             os.makedirs(path_to_save)
             
         self.average_meter_val = StatsMeter(self._config.NUM_CLASSES)
-        img_shape = None
         CurrentlyOpened = namedtuple("CurrentlyOpened", ["img", "mask"])
         opened = CurrentlyOpened(None, None)
         count_map = None
@@ -95,7 +94,7 @@ class TrainModel:
         image_id = 0
         for idx, data in tqdm(enumerate(self.loader_val)):
             img, mask, indices, img_path, mask_path = data
-
+            print(img_path)
             img = img.to(self.device)
             mask = mask.to(self.device)
 
@@ -170,5 +169,5 @@ class TrainModel:
 
 
 if __name__ == "__main__":
-    trainer = TrainModel(RefugeeCupSegmentationConfig())
+    trainer = TrainModel(ThyroidConfig())
     trainer.train()

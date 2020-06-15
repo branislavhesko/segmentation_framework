@@ -145,6 +145,33 @@ class RefugeeCupSegmentationConfig(RefugeeDiscSegmentationConfig):
     PATH_TO_SAVED_SUBIMAGE_INFO = None
 
 
+class ThyroidConfig(Configuration):
+    CROP_SIZE = 256
+    BATCH_SIZE = 4
+    CHECKPOINT = ""
+    NUM_CLASSES = 2
+    CLASS_VALUE = 128
+    OUTPUT_FOLDER = "thyroid"
+    DATASET = "ThyroidDataset"
+    FOLDERS = {
+        NetMode.TRAIN: "train",
+        NetMode.VALIDATE: "validate"
+    }
+    SUBFOLDERS = {
+        ImagesSubfolder.IMAGES: "images/*.PNG",
+        ImagesSubfolder.MASKS: "masks/*.PNG"
+    }
+    FOLDER_WITH_IMAGE_DATA = "/home/brani/STORAGE/DATA/uzv_thyroid/"
+    STRIDE = 0.5
+    STRIDE_VAL = 0.5
+    STRIDE_LIMIT = (2000, 1.)
+    CUDA = True
+    VISUALIZER = "VisualizationTensorboard"
+
+    def process_mask(self, mask):
+        return (mask > 0).astype(np.int32)
+
+
 if __name__ == "__main__":
     cfg = RefugeeDiscSegmentationConfig()
     print(cfg.serialize())

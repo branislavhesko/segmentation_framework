@@ -47,6 +47,7 @@ class Predictor:
         self.model.load_state_dict(torch.load(weights_path))
         self.model.eval()
 
+
 if __name__ == "__main__":
     import cv2
     from PIL import Image
