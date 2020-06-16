@@ -4,14 +4,14 @@ import numpy as np
 import cv2
 import os
 
-from config import Configuration
+from config import Configuration, NetMode
 from loaders.subimage_info_holder import InfoEnum, SubImageInfoHolder
 
 
 class DataLoaderCrop2D:
 
     def __init__(self, img_files, mask_files=(), crop_size=(512, 512),
-                 stride=0.1, transform=lambda x: x, config: Configuration = Configuration()):
+                 stride=0.1, transform=lambda x: x, config: Configuration = Configuration(), mode=NetMode.VALIDATE):
         self._img_files = img_files
         self._mask_files = mask_files
         self._stride = stride
@@ -22,15 +22,18 @@ class DataLoaderCrop2D:
         self._config = config
         self.sub_image_info_holder = SubImageInfoHolder(
             self._img_files, self._mask_files, self._crop_size, self._stride, config=self._config)
-        if False and self._config.PATH_TO_SAVED_SUBIMAGE_INFO is not None and os.path.exists(
-                self._config.PATH_TO_SAVED_SUBIMAGE_INFO) and self._is_subimage_file_valid():
-            self.sub_image_info_holder.load_info_dict(self._config.PATH_TO_SAVED_SUBIMAGE_INFO)
+
+        path = self._config.PATH_TO_SAVED_SUBIMAGE_INFO.replace(".pickle", f"_{mode.value}.pickle")
+        if path is not None and os.path.exists(
+                path) and self._is_subimage_file_valid(path):
+            self.sub_image_info_holder.load_info_dict(path)
         else:
             self.sub_image_info_holder.fill_info_dict()
-        print(self.sub_image_info_holder)
+            if self._config.PATH_TO_SAVED_SUBIMAGE_INFO is not None:
+                self.sub_image_info_holder.save_info_dict(path)
 
-    def _is_subimage_file_valid(self):
-        with open(self._config.PATH_TO_SAVED_SUBIMAGE_INFO, "rb") as fp:
+    def _is_subimage_file_valid(self, path):
+        with open(path, "rb") as fp:
             data = pickle.load(fp)
         if data["config"] == self._config.serialize():
             print("Config is equal to serialized dataset info, allowing loading it!")

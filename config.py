@@ -126,8 +126,8 @@ class RefugeeDiscSegmentationConfig(Configuration):
         ImagesSubfolder.MASKS: "masks/*.bmp"
     }
     FOLDER_WITH_IMAGE_DATA = "../data"
-    STRIDE_VAL = 0.5
-    STRIDE = 0.5
+    STRIDE_VAL = 1.
+    STRIDE = 1.
     STRIDE_LIMIT = (2000, 1.)
     PATH_TO_SAVED_SUBIMAGE_INFO = "../data/refugee_data.pickle"
     CUDA = True
@@ -162,11 +162,13 @@ class ThyroidConfig(Configuration):
         ImagesSubfolder.MASKS: "masks/*.PNG"
     }
     FOLDER_WITH_IMAGE_DATA = "/home/brani/STORAGE/DATA/uzv_thyroid/"
-    STRIDE = 0.5
-    STRIDE_VAL = 0.5
+    STRIDE = 1.
+    STRIDE_VAL = 1.
     STRIDE_LIMIT = (2000, 1.)
     CUDA = True
     VISUALIZER = "VisualizationTensorboard"
+    PATH_TO_SAVED_SUBIMAGE_INFO = "/home/brani/STORAGE/DATA/uzv_thyroid/thyroid.pickle"
+
 
     def process_mask(self, mask):
         return (mask > 0).astype(np.int32)

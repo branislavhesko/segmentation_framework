@@ -53,8 +53,6 @@ class SubImageInfoHolder:
                 self.info_dict[InfoEnum.INDEX].append(image_number)
                 self.info_dict[InfoEnum.NUMBER_OF_INDICES].append(len(indices))
                 self.info_dict[InfoEnum.SLICE_INDICES].append(index)
-        if self._config.PATH_TO_SAVED_SUBIMAGE_INFO is not None:
-            self.save_info_dict(self._config.PATH_TO_SAVED_SUBIMAGE_INFO)
 
     def save_info_dict(self, filename):
         serialized_dict = self._config.serialize()

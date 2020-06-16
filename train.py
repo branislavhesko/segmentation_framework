@@ -44,7 +44,7 @@ class TrainModel:
         self._visualizer = visualizers[self._config.VISUALIZER](self._config, writer=self._writer)
 
     def train(self):
-        self.validate(-1)
+        # self.validate(-1)
         loss, output, prediction = None, None, None
         for epoch in range(self._config.NUMBER_OF_EPOCHS):
             self.model.train()

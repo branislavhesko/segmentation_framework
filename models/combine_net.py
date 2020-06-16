@@ -96,7 +96,6 @@ class CombineNet(nn.Module):
                            self.ppm2, self.ppm3, self.ppm4, self.ppm5, self.merge)
 
     def forward(self, x):
-        print(x.cpu().size())
         x_size = x.size()
         x = self.backbone.conv1(x)
         x = self.backbone.bn1(x)
