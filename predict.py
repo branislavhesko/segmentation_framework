@@ -3,7 +3,7 @@ import numpy as np
 import os
 import torch
 from tqdm import tqdm
-from config import available_models, Configuration, TickColonSegmentation
+from config import available_models, Configuration, TickColonSegmentation, RefugeeDiscSegmentationConfig
 from loaders.subimage_info_holder import ImageLoader
 
 
@@ -52,8 +52,8 @@ if __name__ == "__main__":
     import cv2
     from PIL import Image
     import glob
-    images = glob.glob(os.path.join("./data/tick_eval/kl_32_12d_16bit_tiff/*.tif"))
-    predictor = Predictor(TickColonSegmentation(), cuda=True)
+    images = glob.glob(os.path.join("/home/brani/STORAGE/DATA/refugee/test/*.jpg"))
+    predictor = Predictor(RefugeeDiscSegmentationConfig(), cuda=True)
     for image in images:
         print("Processing image: {}".format(image))
         base_name = os.path.splitext(os.path.basename(image))[0]
