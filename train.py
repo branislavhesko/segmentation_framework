@@ -4,6 +4,7 @@ import glob
 import os
 import shutil
 import sys
+from time import time
 
 import cv2
 from matplotlib import pyplot as plt
@@ -44,15 +45,13 @@ class TrainModel:
         self._visualizer = visualizers[self._config.VISUALIZER](self._config, writer=self._writer)
 
     def train(self):
-        # self.validate(-1)
         loss, output, prediction = None, None, None
         for epoch in range(self._config.NUMBER_OF_EPOCHS):
             self.model.train()
             self.average_meter_train = StatsMeter(self._config.NUM_CLASSES)
             tqdm_loader = tqdm(enumerate(self.loader_train))
             for idx, data in tqdm_loader:
-                tqdm_loader.set_description("Last IOU: {:.3f}".format(self.average_meter_train.last_iou))
-                tqdm_loader.refresh()
+                start = time()
                 img, mask, indices, img_path, mask_path = data
                 self.optimizer.zero_grad()
                 img = img.to(self.device)
@@ -63,6 +62,9 @@ class TrainModel:
                 loss = self.loss(output, mask)
                 loss.backward()
                 self.optimizer.step()
+                tqdm_loader.set_description("Last IOU: {:.3f}, INFERENCE time: {:.2f}".format(
+                    self.average_meter_train.last_iou, time() - start))
+                tqdm_loader.refresh()
                 self.average_meter_train.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
                 self._writer.add_scalar("Loss/train", loss.item(), idx + len(self.loader_train) * epoch)
                 self._writer.add_scalar("Precision/train", torch.sum(prediction == mask) / (
@@ -94,7 +96,7 @@ class TrainModel:
         image_id = 0
         for idx, data in tqdm(enumerate(self.loader_val)):
             img, mask, indices, img_path, mask_path = data
-            print(img_path)
+
             img = img.to(self.device)
             mask = mask.to(self.device)
 
@@ -169,5 +171,5 @@ class TrainModel:
 
 
 if __name__ == "__main__":
-    trainer = TrainModel(ThyroidConfig())
+    trainer = TrainModel(RefugeeDiscSegmentationConfig())
     trainer.train()

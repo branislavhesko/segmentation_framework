@@ -39,7 +39,7 @@ available_models = {
 class Configuration:
     BATCH_SIZE = 2
     CHECKPOINT = ""
-    SAVE_FREQUENCY = 10
+    SAVE_FREQUENCY = 4
     CLASS_VALUE = -1
     CROP_SIZE = 512
     CUDA = True
@@ -51,7 +51,7 @@ class Configuration:
 
     MODEL = "CombineNet"
     NUM_CLASSES = 2
-    NUM_WORKERS = 2
+    NUM_WORKERS = 4
     NUMBER_OF_EPOCHS = 100
     OUTPUT = "ckpt"
     OUTPUT_FOLDER = "polyps"
@@ -60,7 +60,7 @@ class Configuration:
     STRIDE_LIMIT = (1000, 0.5)  # THIS PREVENTS DATASET HALTING
     
     OPTIMALIZER = SGD
-    VALIDATION_FREQUENCY = 2  # num epochs
+    VALIDATION_FREQUENCY = 1  # num epochs
     
     MOMENTUM = 0.9
     WEIGHT_DECAY = 1e-4
@@ -115,8 +115,8 @@ class RefugeeDiscSegmentationConfig(Configuration):
     CHECKPOINT = ""
     NUM_CLASSES = 2
     CLASS_VALUE = 128
-    OUTPUT_FOLDER = "refugee_cup"
-    DATASET = "RefugeeDataset"
+    OUTPUT_FOLDER = "refugee_disc"
+    DATASET = "DataLoaderCrop2D"
     FOLDERS = {
         NetMode.TRAIN: "train",
         NetMode.VALIDATE: "validate"
@@ -126,9 +126,9 @@ class RefugeeDiscSegmentationConfig(Configuration):
         ImagesSubfolder.MASKS: "masks/*.bmp"
     }
     FOLDER_WITH_IMAGE_DATA = "../data"
-    STRIDE_VAL = 1.
-    STRIDE = 1.
-    STRIDE_LIMIT = (2000, 1.)
+    STRIDE_VAL = 0.5
+    STRIDE = 0.5
+    STRIDE_LIMIT = (2000, 0.5)
     PATH_TO_SAVED_SUBIMAGE_INFO = "../data/refugee_data.pickle"
     CUDA = True
     VISUALIZER = "VisualizationTensorboard"
@@ -141,7 +141,7 @@ class RefugeeDiscSegmentationConfig(Configuration):
 
 class RefugeeCupSegmentationConfig(RefugeeDiscSegmentationConfig):
     CLASS_VALUE = 10
-    OUTPUT_FOLDER = "refugee_cup_correct"
+    OUTPUT_FOLDER = "refugee_cup"
     PATH_TO_SAVED_SUBIMAGE_INFO = None
 
 

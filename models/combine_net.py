@@ -25,16 +25,13 @@ class _MergeBlock(nn.Module):
     def __init__(self, in_channels, number_of_classes):
         super(_MergeBlock, self).__init__()
         self._in_channels = in_channels
-        moddle_channels = in_channels // 2
         self._num_classes = number_of_classes
         layers = [nn.Conv2d(in_channels, 128, kernel_size=3, stride=1, padding=1, bias=False),
                   nn.BatchNorm2d(128),
                   nn.ReLU(inplace=True),
-                  nn.Dropout(0.5),
                   nn.Conv2d(128, 128, kernel_size=3, stride=1, padding=1, bias=False),
                   nn.BatchNorm2d(128),
                   nn.ReLU(inplace=True),
-                  nn.Dropout(0.5),
                   nn.Conv2d(128, self._num_classes, kernel_size=1, stride=1)]
         self.merge = nn.Sequential(*layers)
 

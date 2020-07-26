@@ -11,8 +11,8 @@ class RefugeeSegmentationDataset(DataLoaderCrop2D):
         OPTIC_CUP = 2
 
     def __init__(self, img_files, mask_files=(), crop_size=(512, 512),
-                 stride=0.1, transform=lambda x: x):
-        super().__init__(img_files, mask_files, crop_size, stride, transform, RefugeeCupSegmentationConfig())
+                 stride=0.1, transform=lambda x: x, config=None):
+        super().__init__(img_files, mask_files, crop_size, stride, transform, config)
 
 
 if __name__ == "__main__":
