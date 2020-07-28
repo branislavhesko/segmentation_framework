@@ -112,7 +112,7 @@ class TickColonSegmentation(Configuration):
 
 
 class RefugeeDiscSegmentationConfig(Configuration):
-    CHECKPOINT = ""
+    CHECKPOINT = "CombineNet_epoch14__05-09-2020_06_22_22_NUM_CLASSES2_mean_loss0.006_accuracy0.998_mean_IOU0.956_mean_DICE0.972.pth"
     NUM_CLASSES = 2
     CLASS_VALUE = 128
     OUTPUT_FOLDER = "refugee_disc"
@@ -143,6 +143,7 @@ class RefugeeCupSegmentationConfig(RefugeeDiscSegmentationConfig):
     CLASS_VALUE = 10
     OUTPUT_FOLDER = "refugee_cup"
     PATH_TO_SAVED_SUBIMAGE_INFO = None
+    CHECKPOINT = "CombineNet_epoch10__05-18-2020_06_20_30_NUM_CLASSES2_mean_loss0.008_accuracy0.997_mean_IOU0.881_mean_DICE0.912.pth"
 
 
 class ThyroidConfig(Configuration):
