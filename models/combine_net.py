@@ -26,13 +26,10 @@ class _MergeBlock(nn.Module):
         super(_MergeBlock, self).__init__()
         self._in_channels = in_channels
         self._num_classes = number_of_classes
-        layers = [nn.Conv2d(in_channels, 128, kernel_size=3, stride=1, padding=1, bias=False),
-                  nn.BatchNorm2d(128),
+        layers = [nn.Conv2d(in_channels, 256, kernel_size=3, stride=1, padding=1, bias=False),
+                  nn.BatchNorm2d(256),
                   nn.ReLU(inplace=True),
-                  nn.Conv2d(128, 128, kernel_size=3, stride=1, padding=1, bias=False),
-                  nn.BatchNorm2d(128),
-                  nn.ReLU(inplace=True),
-                  nn.Conv2d(128, self._num_classes, kernel_size=1, stride=1)]
+                  nn.Conv2d(256, self._num_classes, kernel_size=1, stride=1)]
         self.merge = nn.Sequential(*layers)
 
     def forward(self, x):
@@ -40,26 +37,14 @@ class _MergeBlock(nn.Module):
 
 
 class _DecoderBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, num_conv_layers):
+    def __init__(self, in_channels, out_channels):
         super(_DecoderBlock, self).__init__()
-        middle_channels = int(in_channels / 2)
         layers = [
             nn.ConvTranspose2d(in_channels, in_channels, kernel_size=2, stride=2),
-            nn.Conv2d(in_channels, middle_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(middle_channels),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         ]
-        layers += [
-                      nn.Conv2d(middle_channels, middle_channels, kernel_size=3, padding=1),
-                      nn.BatchNorm2d(middle_channels),
-                      nn.ReLU(inplace=True),
-                  ] * (num_conv_layers - 2)
-        layers += [
-            nn.Conv2d(middle_channels, out_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
-        ]
-
         self.decode = nn.Sequential(*layers)
 
     def forward(self, x):
@@ -72,25 +57,20 @@ class CombineNet(nn.Module):
         super(CombineNet, self).__init__()
         self._backbone_name = backbone
         self.backbone = get_backbone(backbone)
+        self.backbone.fc = None
 
         self.dec5 = nn.Sequential(
             *([nn.ConvTranspose2d(2048, 256, kernel_size=2, stride=2)] +
               [nn.Conv2d(256, 256, kernel_size=3, padding=1),
                nn.BatchNorm2d(256),
-               nn.ReLU(inplace=True)] * 2)
-        )
-        self.dec4 = _DecoderBlock(int(1280), 128, 4)
-        self.dec3 = _DecoderBlock(int(640), 128, 4)
-        self.dec2 = _DecoderBlock(int(384), 64, 2)
-        self.dec1 = _DecoderBlock(int(192), 64, 2)
-        self.ppm1 = PyramidPoolingModule(128, 16, (1, 2, 3, 6))
-        self.ppm2 = PyramidPoolingModule(256, 16, (1, 2, 3, 6))
-        self.ppm3 = PyramidPoolingModule(512, 16, (1, 2, 3, 6))
-        self.ppm4 = PyramidPoolingModule(1024, 16, (1, 2, 3, 6))
-        self.ppm5 = PyramidPoolingModule(2048, 16, (1, 2, 3, 6))
-        self.merge = _MergeBlock(384, num_classes)
-        initialize_weights(self.dec5, self.dec4, self.dec3, self.dec2, self.dec1, self.ppm1,
-                           self.ppm2, self.ppm3, self.ppm4, self.ppm5, self.merge)
+               nn.ReLU(inplace=True)]))
+        self.dec4 = _DecoderBlock(int(1280), 256)
+        self.dec3 = _DecoderBlock(int(768), 256)
+        self.dec2 = _DecoderBlock(int(512), 256)
+        self.dec1 = _DecoderBlock(int(384), 256)
+        self.ppm5 = PyramidPoolingModule(2048, 128, (1, 2, 3, 6))
+        self.merge = _MergeBlock(768, num_classes)
+        initialize_weights(self.dec5, self.dec4, self.dec3, self.dec2, self.dec1, self.ppm5, self.merge)
 
     def forward(self, x):
         x_size = x.size()
@@ -104,10 +84,6 @@ class CombineNet(nn.Module):
         enc4 = self.backbone.layer3(enc3)
         enc5 = self.backbone.layer4(enc4)
         ppm5 = interpolate(self.ppm5(enc5), x_size[2:], mode="bilinear", align_corners=True)
-        ppm4 = interpolate(self.ppm4(enc4), x_size[2:], mode="bilinear", align_corners=True)
-        ppm3 = interpolate(self.ppm3(enc3), x_size[2:], mode="bilinear", align_corners=True)
-        ppm2 = interpolate(self.ppm2(enc2), x_size[2:], mode="bilinear", align_corners=True)
-        ppm1 = interpolate(self.ppm1(enc1), x_size[2:], mode="bilinear", align_corners=True)
 
         dec5 = self.dec5(enc5)
         dec4 = self.dec4(torch.cat([enc4, dec5], 1))
@@ -115,11 +91,12 @@ class CombineNet(nn.Module):
         dec2 = self.dec2(torch.cat([enc2, dec3], 1))
         dec1 = self.dec1(torch.cat([enc1, dec2], 1))
 
-        return self.merge(torch.cat([dec1, ppm5, ppm4, ppm3, ppm2, ppm1], 1))
+        return self.merge(torch.cat([dec1, ppm5], 1))
 
     def __str__(self):
         return "CombineNet based on {} backbone.\n".format(self._backbone_name) + super().__str__()
 
 
 if __name__ == "__main__":
-    CombineNet(2)(torch.rand(2, 3, 256, 256))
+    net = CombineNet(2).cuda().train()
+    net(torch.rand(4, 3, 256, 256).cuda())

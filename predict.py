@@ -17,7 +17,7 @@ class Predictor:
         weights_path = os.path.join("..", self._config.OUTPUT, self._config.OUTPUT_FOLDER, self._config.CHECKPOINT)
         assert os.path.exists(weights_path)
         self._load_model(weights_path)
-        self._image_loader = ImageLoader((self._config.CROP_SIZE, self._config.CROP_SIZE), stride=0.5)
+        self._image_loader = ImageLoader((self._config.CROP_SIZE, self._config.CROP_SIZE), stride=0.2)
 
     def predict(self, image):
         assert len(image.shape) == 3, "Image should be in RGB format for now."
@@ -54,11 +54,11 @@ if __name__ == "__main__":
     from matplotlib import pyplot as plt
     import glob
     images = glob.glob(os.path.join("/home/brani/STORAGE/DATA/refugee/test/*.jpg"))
-    predictor = Predictor(RefugeeCupSegmentationConfig(), cuda=True)
-    os.makedirs("./data/output2/", exist_ok=True)
+    predictor = Predictor(RefugeeDiscSegmentationConfig(), cuda=True)
+    os.makedirs("./data/output/", exist_ok=True)
     for image in images:
         base_name = os.path.splitext(os.path.basename(image))[0]
-        if os.path.exists(os.path.join("./data/output2/", base_name + ".png")):
+        if os.path.exists(os.path.join("./data/output/", base_name + ".png")):
             continue
         print("Processing image: {}".format(image))
 
@@ -68,4 +68,4 @@ if __name__ == "__main__":
         img = img / 255.
         mask = predictor.predict(img)
         mask = cv2.resize(mask, img_shape[::-1], interpolation=cv2.INTER_NEAREST)
-        cv2.imwrite(os.path.join("./data/output2/", base_name + ".png"), mask * 255)
+        cv2.imwrite(os.path.join("./data/output/", base_name + ".png"), mask * 255)

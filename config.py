@@ -49,7 +49,7 @@ class Configuration:
     LEARNING_RATE = 1e-4
     LOSS = CrossEntropyLoss
 
-    MODEL = "CombineNet"
+    MODEL = "DeepLabV3p"
     NUM_CLASSES = 2
     NUM_WORKERS = 4
     NUMBER_OF_EPOCHS = 100
@@ -112,7 +112,7 @@ class TickColonSegmentation(Configuration):
 
 
 class RefugeeDiscSegmentationConfig(Configuration):
-    CHECKPOINT = "CombineNet_epoch14__05-09-2020_06_22_22_NUM_CLASSES2_mean_loss0.006_accuracy0.998_mean_IOU0.956_mean_DICE0.972.pth"
+    CHECKPOINT = "DeepLabV3p_epoch12__07-29-2020_21_07_10_NUM_CLASSES2_mean_loss0.022_accuracy0.994_mean_IOU0.904_mean_DICE0.931.pth"
     NUM_CLASSES = 2
     CLASS_VALUE = 128
     OUTPUT_FOLDER = "refugee_disc"
