@@ -43,7 +43,10 @@ class Configuration:
     CLASS_VALUE = -1
     CROP_SIZE = 512
     CUDA = True
-    DATASET = "DataLoaderCrop2D"
+    DATASET = {
+        NetMode.TRAIN: "SmartRandomDataLoader",
+        NetMode.VALIDATE: "DataLoaderCrop2D",
+    }
     FOLDER_WITH_IMAGE_DATA = "./data"
 
     LEARNING_RATE = 1e-4
@@ -88,6 +91,7 @@ class Configuration:
         ImagesSubfolder.IMAGES: "images/*.tif",
         ImagesSubfolder.MASKS: "mask/*.tif"
     }
+    NUM_RANDOM_CROPS_PER_IMAGE = 12
     VISUALIZER = "VisualizationSaveImages"
 
     def serialize(self):

@@ -12,12 +12,12 @@ CurrentlyOpened = namedtuple("CurrentlyOpened", ["image", "mask", "id"])
 class SmartRandomDataLoader(Dataset):
 
     def __init__(self, config: Configuration, img_files, mask_files,
-                 crop_size, transforms, num_random_crops_single_image, **_):
+                 crop_size, transforms, **_):
         self._img_files = img_files
         self._mask_files = mask_files
         self._crop_size = crop_size
         self._transforms = transforms
-        self._num_random_crops = num_random_crops_single_image
+        self._num_random_crops = self._config.NUM_RANDOM_CROPS_PER_IMAGE
         self._currently_opened = CurrentlyOpened(None, None, None)
         self._config = config
 

@@ -10,11 +10,11 @@ def get_data_loaders(config: Configuration):
     imgs_train, masks_train = _get_imgs_masks_files(config, NetMode.TRAIN)
     imgs_val, masks_val = _get_imgs_masks_files(config, NetMode.VALIDATE)
 
-    dataloader_train = AvailableDatasets.DATASETS[config.DATASET](img_files=imgs_train, mask_files=masks_train,
+    dataloader_train = AvailableDatasets.DATASETS[config.DATASET[NetMode.TRAIN]](img_files=imgs_train, mask_files=masks_train,
                                                                   crop_size=(config.CROP_SIZE, config.CROP_SIZE),
                                                                   stride=config.STRIDE, transform=config.AUGMENTATION,
                                                                   config=config, mode=NetMode.TRAIN)
-    dataloader_val = AvailableDatasets.DATASETS[config.DATASET](img_files=imgs_val, mask_files=masks_val,
+    dataloader_val = AvailableDatasets.DATASETS[config.DATASET[NetMode.VALIDATE]](img_files=imgs_val, mask_files=masks_val,
                                                                 crop_size=(config.CROP_SIZE, config.CROP_SIZE),
                                                                 stride=config.STRIDE_VAL,
                                                                 transform=config.VAL_AUGMENTATION,
