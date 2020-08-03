@@ -41,13 +41,13 @@ class Configuration:
     CHECKPOINT = ""
     SAVE_FREQUENCY = 4
     CLASS_VALUE = -1
-    CROP_SIZE = 512
+    CROP_SIZE = 256
     CUDA = True
     DATASET = {
         NetMode.TRAIN: "SmartRandomDataLoader",
         NetMode.VALIDATE: "DataLoaderCrop2D",
     }
-    FOLDER_WITH_IMAGE_DATA = "./data"
+    FOLDER_WITH_IMAGE_DATA = "/home/branislav/datasets/refuge"
 
     LEARNING_RATE = 1e-4
     LOSS = CrossEntropyLoss
@@ -116,7 +116,7 @@ class TickColonSegmentation(Configuration):
 
 
 class RefugeeDiscSegmentationConfig(Configuration):
-    CHECKPOINT = "DeepLabV3p_epoch12__07-29-2020_21_07_10_NUM_CLASSES2_mean_loss0.022_accuracy0.994_mean_IOU0.904_mean_DICE0.931.pth"
+    CHECKPOINT = ""
     NUM_CLASSES = 2
     CLASS_VALUE = 128
     OUTPUT_FOLDER = "refugee_disc"
@@ -129,11 +129,10 @@ class RefugeeDiscSegmentationConfig(Configuration):
         ImagesSubfolder.IMAGES: "images/*.jpg",
         ImagesSubfolder.MASKS: "masks/*.bmp"
     }
-    FOLDER_WITH_IMAGE_DATA = "../data"
     STRIDE_VAL = 0.5
     STRIDE = 0.5
     STRIDE_LIMIT = (2000, 0.5)
-    PATH_TO_SAVED_SUBIMAGE_INFO = "../data/refugee_data.pickle"
+    PATH_TO_SAVED_SUBIMAGE_INFO = "/home/branislav/datasets/refuge/refugee_data.pickle"
     CUDA = True
     VISUALIZER = "VisualizationTensorboard"
 

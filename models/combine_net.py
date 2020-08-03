@@ -15,9 +15,9 @@ def get_backbone(backbone):
     elif backbone == "resnext101":
         return models.resnext101_32x8d(True)
     elif backbone == "resnest50":
-        return torch.hub.load('zhanghang1989/ResNeSt', 'resnest50', pretrained=True)
+        return torch.hub.load('zhanghang1989/ResNeSt', 'resnest50', pretrained=True, dilated=True)
     elif backbone == "resnest101":
-        return torch.hub.load('zhanghang1989/ResNeSt', 'resnest101', pretrained=True)
+        return torch.hub.load('zhanghang1989/ResNeSt', 'resnest101', pretrained=True, dilated=True)
 
 
 class _MergeBlock(nn.Module):
@@ -53,15 +53,14 @@ class _DecoderBlock(nn.Module):
 
 class CombineNet(nn.Module):
 
-    def __init__(self, num_classes, backbone="resnest101"):
+    def __init__(self, num_classes, backbone="resnest50"):
         super(CombineNet, self).__init__()
         self._backbone_name = backbone
         self.backbone = get_backbone(backbone)
         self.backbone.fc = None
 
         self.dec5 = nn.Sequential(
-            *([nn.ConvTranspose2d(2048, 256, kernel_size=2, stride=2)] +
-              [nn.Conv2d(256, 256, kernel_size=3, padding=1),
+            *([nn.Conv2d(2048, 256, kernel_size=3, padding=1),
                nn.BatchNorm2d(256),
                nn.ReLU(inplace=True)]))
         self.dec4 = _DecoderBlock(int(1280), 256)
@@ -76,22 +75,20 @@ class CombineNet(nn.Module):
         x_size = x.size()
         x = self.backbone.conv1(x)
         x = self.backbone.bn1(x)
-        enc1 = self.backbone.relu(x)
-        x = self.backbone.maxpool(enc1)
+        x = self.backbone.relu(x)
+        x = self.backbone.maxpool(x)
 
         enc2 = self.backbone.layer1(x)
         enc3 = self.backbone.layer2(enc2)
         enc4 = self.backbone.layer3(enc3)
         enc5 = self.backbone.layer4(enc4)
-        ppm5 = interpolate(self.ppm5(enc5), x_size[2:], mode="bilinear", align_corners=True)
+        ppm5 = interpolate(self.ppm5(enc5), scale_factor=4., mode="bilinear", align_corners=True)
 
         dec5 = self.dec5(enc5)
         dec4 = self.dec4(torch.cat([enc4, dec5], 1))
-        dec3 = self.dec3(torch.cat([enc3, dec4], 1))
-        dec2 = self.dec2(torch.cat([enc2, dec3], 1))
-        dec1 = self.dec1(torch.cat([enc1, dec2], 1))
+        dec3 = self.dec3(torch.cat([interpolate(enc3, scale_factor=2.), dec4], 1))
 
-        return self.merge(torch.cat([dec1, ppm5], 1))
+        return interpolate(self.merge(torch.cat([interpolate(enc2, scale_factor=2.), dec3, ppm5], 1)), scale_factor=2.)
 
     def __str__(self):
         return "CombineNet based on {} backbone.\n".format(self._backbone_name) + super().__str__()
@@ -99,4 +96,4 @@ class CombineNet(nn.Module):
 
 if __name__ == "__main__":
     net = CombineNet(2).cuda().train()
-    net(torch.rand(4, 3, 256, 256).cuda())
+    net(torch.rand(4, 3, 512, 512).cuda())
