@@ -7,6 +7,7 @@ from torch.optim import SGD
 from models.combine_net import CombineNet
 from models.deeplab import DeepLab
 from models.psp_net import PSPNet
+from models.refinenet.refinenet_4cascade import RefineNet4Cascade
 from models.unet import UNet
 from utils.learning_rate import adaptive_learning_rate
 from utils.transforms import (Clahe, ComposeTransforms, Normalize, RandomHorizontalFlip, RandomRotate, 
@@ -32,6 +33,7 @@ available_models = {
     "CombineNet": CombineNet,
     "DeepLabV3p": DeepLab,
     "PSPNet": PSPNet,
+    "RefineNet": RefineNet4Cascade,
     "UNet": UNet
 }
 
