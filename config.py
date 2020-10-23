@@ -109,6 +109,41 @@ class Configuration:
         return mask
 
 
+class IdridSegmentation(Configuration):
+    CHECKPOINT = ""
+    NUM_CLASSES = 5
+    FOLDER_WITH_IMAGE_DATA = "/home/brani/STORAGE/idrid/A. Segmentation/"
+    FOLDERS = {
+        NetMode.TRAIN: "train",
+        NetMode.VALIDATE: "eval"
+    }
+    SUBFOLDERS = {
+        ImagesSubfolder.IMAGES: "images/*jpg",
+        ImagesSubfolder.MASKS: "masks/*png"
+    }
+    MODEL = "CombineNet"
+    CROP_SIZE = 512
+    COLORS = (
+        [255, 0, 0],
+        [0, 255, 0],
+        [0, 255, 255],
+        [0, 0, 255],
+        [255, 255, 0]
+    )
+    DATASET = {
+        NetMode.TRAIN: "IdridDataset",
+        NetMode.VALIDATE: "DataLoaderCrop2D",
+    }
+    PATH_TO_SAVED_SUBIMAGE_INFO = "/home/brani/STORAGE/idrid/A. Segmentation/eval.pickle"
+    NUM_WORKERS = 0
+
+    def process_mask(self, mask):
+        output_mask = np.zeros(mask.shape[:2])
+        for idx, color in enumerate(self.COLORS):
+            output_mask[np.all(mask == color, axis=-1)] = idx + 1
+        return output_mask
+
+
 class TickColonSegmentation(Configuration):
     CHECKPOINT = "CombineNet_epoch84__03-14-2020_09_43_01_NUM_CLASSES2_mean_loss0.068_accuracy0.975_mean_IOU0.888_mean_DICE0.926.pth"
     NUM_CLASSES = 2

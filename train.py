@@ -1,22 +1,15 @@
 from collections import namedtuple
 from datetime import datetime
-import glob
 import os
-import shutil
-import sys
 from time import time
 
 import cv2
-from matplotlib import pyplot as plt
-import numpy as np
-from scipy.io import savemat
 import torch
-from torch.utils.data.dataloader import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from config import available_models, Configuration, TickColonSegmentation, \
-    RefugeeDiscSegmentationConfig, RefugeeCupSegmentationConfig, ThyroidConfig
+    RefugeeDiscSegmentationConfig, RefugeeCupSegmentationConfig, ThyroidConfig, IdridSegmentation
 from helper_scripts.utils import check_and_make_dirs
 from loaders.data_loader_mask_generic import DataLoaderCrop2D
 from loaders.get_data_loader import get_data_loaders
@@ -171,5 +164,5 @@ class TrainModel:
 
 
 if __name__ == "__main__":
-    trainer = TrainModel(RefugeeDiscSegmentationConfig())
+    trainer = TrainModel(IdridSegmentation())
     trainer.train()

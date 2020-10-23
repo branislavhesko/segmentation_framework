@@ -3,7 +3,7 @@ import os
 from torch.utils.data import DataLoader
 
 from config import Configuration, ImagesSubfolder, NetMode
-from loaders.available_datasets import AvailableDatasets
+from datasets.available_datasets import AvailableDatasets
 
 
 def get_data_loaders(config: Configuration):
