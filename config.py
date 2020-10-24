@@ -39,6 +39,8 @@ available_models = {
 
 
 class Configuration:
+    FOCAL_LOSS_INDICES = None
+    CE_LOSS_INDICES = None
     BATCH_SIZE = 2
     CHECKPOINT = ""
     SAVE_FREQUENCY = 4
