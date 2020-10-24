@@ -9,8 +9,7 @@ from models.deeplab import DeepLab
 from models.psp_net import PSPNet
 from models.refinenet.refinenet_4cascade import RefineNet4Cascade
 from models.unet import UNet
-from utils.learning_rate import adaptive_learning_rate
-from utils.transforms import (Clahe, ComposeTransforms, Normalize, RandomHorizontalFlip, RandomRotate, 
+from utils.transforms import (ComposeTransforms, Normalize, RandomHorizontalFlip, RandomRotate,
                               RandomVerticalFlip, RandomSquaredCrop, ToTensor, Transpose)
 
 
@@ -113,7 +112,7 @@ class Configuration:
 
 class IdridSegmentation(Configuration):
     CHECKPOINT = ""
-    NUM_CLASSES = 5
+    NUM_CLASSES = 6
     FOLDER_WITH_IMAGE_DATA = "/home/brani/STORAGE/idrid/A. Segmentation/"
     FOLDERS = {
         NetMode.TRAIN: "train",
@@ -123,7 +122,7 @@ class IdridSegmentation(Configuration):
         ImagesSubfolder.IMAGES: "images/*jpg",
         ImagesSubfolder.MASKS: "masks/*png"
     }
-    MODEL = "CombineNet"
+    MODEL = "DeepLabV3p"
     CROP_SIZE = 512
     COLORS = (
         [255, 0, 0],
@@ -137,7 +136,14 @@ class IdridSegmentation(Configuration):
         NetMode.VALIDATE: "DataLoaderCrop2D",
     }
     PATH_TO_SAVED_SUBIMAGE_INFO = "/home/brani/STORAGE/idrid/A. Segmentation/eval.pickle"
-    NUM_WORKERS = 0
+    NUM_WORKERS = 4
+    NUM_RANDOM_CROPS_PER_IMAGE = 10
+    STRIDE = 1.
+    STRIDE_VAL = 1.
+    STRIDE_LIMIT = (1000, 1.)
+    OUTPUT_FOLDER = "IDRID"
+    LEARNING_RATE = 1e-3
+    VISUALIZER = "VisualizationTensorboard"
 
     def process_mask(self, mask):
         output_mask = np.zeros(mask.shape[:2])

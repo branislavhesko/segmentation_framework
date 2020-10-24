@@ -1,4 +1,6 @@
+import inspect
 import os
+import json
 from math import ceil
 
 import numpy as np
@@ -253,3 +255,18 @@ def sliced_forward(single_forward):
             return outputs_all_scales
 
     return wrapper
+
+
+def configuration_to_json(config, path_to_json):
+    output = {}
+    properties = list(filter(lambda x: (not inspect.ismethod(
+        getattr(config, x)) and not x.startswith("__")), dir(config)))
+    for prop in properties:
+        output[prop] = str(getattr(config, prop))
+    with open(path_to_json, "w") as fp:
+        json.dump(output, fp, indent=4)
+
+
+if __name__ == "__main__":
+    from config import IdridSegmentation
+    configuration_to_json(IdridSegmentation(), "skuska.json")

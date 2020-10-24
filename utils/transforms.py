@@ -90,6 +90,9 @@ class ComposeTransforms:
             img, mask = transform(img, mask)
         return img, mask
 
+    def __str__(self):
+        return "|".join(map(lambda x: x.__class__.__name__, self._transforms))
+
 
 class Clahe:
     def __init__(self):

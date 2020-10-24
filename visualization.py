@@ -27,7 +27,7 @@ class VisualizationInterface(metaclass=ABCMeta):
         pass
 
     def store_prediction(self, prediction):
-        fig, axs = plt.subplots(1, prediction.shape[0], figsize=(10, 3), dpi=100)
+        fig, axs = plt.subplots(1, prediction.shape[0], figsize=(10, 3), dpi=400)
         for idx, ax in enumerate(axs):    
             ax.imshow(prediction[idx, :, :])
         return fig
