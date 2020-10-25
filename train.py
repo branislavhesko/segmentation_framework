@@ -136,7 +136,7 @@ class TrainModel:
     def _initialize(self):
         self.model = available_models[self._config.MODEL](self._config.NUM_CLASSES).to(self.device)
         print(self.model)
-        self.loss = self._config.LOSS(size_average=True)
+        self.loss = self._config.LOSS(config=self._config)
         self.optimizer = self._config.OPTIMALIZER([
             {'params': [param for name, param in self.model.named_parameters() if name[-4:] == 'bias'],
             'lr': 2 * self._config.LEARNING_RATE},

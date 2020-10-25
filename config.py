@@ -4,6 +4,7 @@ import numpy as np
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 
+from losses.combined_loss import CombinedLoss
 from models.combine_net import CombineNet
 from models.deeplab import DeepLab
 from models.psp_net import PSPNet
@@ -94,7 +95,7 @@ class Configuration:
         ImagesSubfolder.IMAGES: "images/*.tif",
         ImagesSubfolder.MASKS: "mask/*.tif"
     }
-    NUM_RANDOM_CROPS_PER_IMAGE = 12
+    NUM_RANDOM_CROPS_PER_IMAGE = 4
     VISUALIZER = "VisualizationSaveImages"
 
     def serialize(self):
@@ -111,6 +112,7 @@ class Configuration:
 
 
 class IdridSegmentation(Configuration):
+    LOSS = CombinedLoss
     CHECKPOINT = ""
     NUM_CLASSES = 6
     FOLDER_WITH_IMAGE_DATA = "/home/brani/STORAGE/idrid/A. Segmentation/"
@@ -138,13 +140,15 @@ class IdridSegmentation(Configuration):
     PATH_TO_SAVED_SUBIMAGE_INFO = "/home/brani/STORAGE/idrid/A. Segmentation/eval.pickle"
     BATCH_SIZE = 4
     NUM_WORKERS = 8
-    NUM_RANDOM_CROPS_PER_IMAGE = 100
+    NUM_RANDOM_CROPS_PER_IMAGE = 10
     STRIDE = 1.
     STRIDE_VAL = 1.
     STRIDE_LIMIT = (1000, 1.)
     OUTPUT_FOLDER = "IDRID"
     LEARNING_RATE = 1e-3
     VISUALIZER = "VisualizationTensorboard"
+    FOCAL_LOSS_INDICES = (1, 2, 4)
+    CE_LOSS_INDICES = (0, 3, 5)
 
     def process_mask(self, mask):
         output_mask = np.zeros(mask.shape[:2])
