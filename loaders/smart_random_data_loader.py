@@ -10,7 +10,7 @@ CurrentlyOpened = namedtuple("CurrentlyOpened", ["image", "mask", "id"])
 
 
 class SmartRandomDataLoader(Dataset):
-    MASK_LOADER = cv2.IMREAD_GRAYSCALE
+    MASK_LOAD_TYPE = cv2.IMREAD_COLOR
 
     def __init__(self, config: Configuration, img_files, mask_files,
                  crop_size, transforms, **_):
@@ -50,7 +50,7 @@ class SmartRandomDataLoader(Dataset):
         self._currently_opened = CurrentlyOpened(
             image=cv2.cvtColor(cv2.imread(
                 self._img_files[image_id], cv2.IMREAD_COLOR).astype(np.float32) / 255., cv2.COLOR_BGR2RGB),
-            mask=self._config.process_mask(cv2.imread(self._mask_files[image_id], self.MASK_LOADER)),
+            mask=self._config.process_mask(cv2.imread(self._mask_files[image_id], self.MASK_LOAD_TYPE)),
             id=image_id
         )
 

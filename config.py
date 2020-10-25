@@ -57,7 +57,7 @@ class Configuration:
 
     MODEL = "DeepLabV3p"
     NUM_CLASSES = 2
-    NUM_WORKERS = 4
+    NUM_WORKERS = 8
     NUMBER_OF_EPOCHS = 100
     OUTPUT = "ckpt"
     OUTPUT_FOLDER = "polyps"
@@ -136,8 +136,9 @@ class IdridSegmentation(Configuration):
         NetMode.VALIDATE: "DataLoaderCrop2D",
     }
     PATH_TO_SAVED_SUBIMAGE_INFO = "/home/brani/STORAGE/idrid/A. Segmentation/eval.pickle"
-    NUM_WORKERS = 4
-    NUM_RANDOM_CROPS_PER_IMAGE = 10
+    BATCH_SIZE = 4
+    NUM_WORKERS = 8
+    NUM_RANDOM_CROPS_PER_IMAGE = 100
     STRIDE = 1.
     STRIDE_VAL = 1.
     STRIDE_LIMIT = (1000, 1.)
