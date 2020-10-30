@@ -25,6 +25,6 @@ class CombinedLoss(torch.nn.Module):
         labels_focal_loss = labels_layered[:, self._focal_loss_indices, :, :]
         # output_ce_loss = output[:, self._ce_loss_indices, :, :]
         # labels_ce_loss = labels[:, self._ce_loss_indices, :, :]
-        focal_loss = self._focal_loss(labels_focal_loss, torch.sigmoid(output_focal_loss))
+        focal_loss = self._focal_loss(labels_layered[:, 1:, :, :], torch.sigmoid(output)[:, 1:, :, :])
         print("sum: {}, focal_loss: {}".format(torch.sum(labels_focal_loss), focal_loss.item()))
-        return focal_loss + self._ce_loss(output, labels)
+        return focal_loss # + self._ce_loss(output, labels)
