@@ -61,8 +61,8 @@ class TrainModel:
                 loss = self.loss(output, mask)
                 loss.backward()
                 self.optimizer.step()
-                tqdm_loader.set_description("Last IOU: {:.3f}, INFERENCE time: {:.2f}".format(
-                    self.average_meter_train.last_iou, time() - start))
+                tqdm_loader.set_description("Last IOU: {:.3f}, INFERENCE time: {:.2f}, LOSS: {:.2f}".format(
+                    self.average_meter_train.last_iou, time() - start, loss.item()))
                 tqdm_loader.refresh()
                 self.average_meter_train.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
                 self._writer.add_scalar("Loss/train", loss.item(), idx + len(self.loader_train) * epoch)
