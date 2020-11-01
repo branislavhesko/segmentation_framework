@@ -4,7 +4,7 @@ import numpy as np
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 
-from losses.combined_loss import CombinedLoss
+from losses.api import FocalTverskyLoss
 from models.combine_net import CombineNet
 from models.deeplab import DeepLab
 from models.psp_net import PSPNet
@@ -112,7 +112,7 @@ class Configuration:
 
 
 class IdridSegmentation(Configuration):
-    LOSS = CombinedLoss
+    LOSS = FocalTverskyLoss
     CHECKPOINT = ""
     NUM_CLASSES = 6
     FOLDER_WITH_IMAGE_DATA = "/home/brani/STORAGE/idrid/A. Segmentation/"

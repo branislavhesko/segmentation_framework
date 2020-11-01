@@ -49,7 +49,7 @@ class SmartRandomDataLoader(Dataset):
     def assign_currently_opened(self, image_id):
         self._currently_opened = CurrentlyOpened(
             image=cv2.cvtColor(cv2.imread(
-                self._img_files[image_id], cv2.IMREAD_COLOR).astype(np.float32) / 255., cv2.COLOR_BGR2RGB),
+                self._img_files[image_id], cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB).astype(np.float32) / 255.,
             mask=self._config.process_mask(cv2.imread(self._mask_files[image_id], self.MASK_LOAD_TYPE)),
             id=image_id
         )

@@ -15,6 +15,10 @@ def check_mkdir(dir_name):
         os.mkdir(dir_name)
 
 
+def format_iterable(iterable, format_="{:.2f}"):
+    return "[" + ",".join([format_.format(x) for x in iterable]) + "]"
+
+
 def initialize_weights(*models):
     for model in models:
         for module in model.modules():

@@ -28,9 +28,10 @@ class VisualizationInterface(metaclass=ABCMeta):
 
     @staticmethod
     def store_prediction(prediction):
+        min_, max_ = np.amin(prediction), np.amax(prediction)
         fig, axs = plt.subplots(1, prediction.shape[0], figsize=(10, 3), dpi=400)
         for idx, ax in enumerate(axs):    
-            ax.imshow(prediction[idx, :, :])
+            ax.imshow(prediction[idx, :, :], vmin=min_, vmax=max_)
         return fig
 
 

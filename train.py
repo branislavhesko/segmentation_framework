@@ -15,7 +15,7 @@ from config import available_models, Configuration, TickColonSegmentation, \
 from helper_scripts.utils import check_and_make_dirs
 from loaders.get_data_loader import get_data_loaders
 from stats.stats_meter import StatsMeter
-from utils.misc import configuration_to_json
+from utils.misc import configuration_to_json, format_iterable
 
 from visualization import visualizers
 
@@ -61,13 +61,14 @@ class TrainModel:
                 loss = self.loss(output, mask)
                 loss.backward()
                 self.optimizer.step()
-                tqdm_loader.set_description("Last IOU: {:.3f}, INFERENCE time: {:.2f}, LOSS: {:.2f}".format(
-                    self.average_meter_train.last_iou, time() - start, loss.item()))
+                tqdm_loader.set_description("Last IOU: {}, INFERENCE time: {:.2f}, LOSS: {:.2f}".format(
+                    format_iterable(self.average_meter_train.last_iou), time() - start, loss.item()))
                 tqdm_loader.refresh()
                 self.average_meter_train.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
                 self._writer.add_scalar("Loss/train", loss.item(), idx + len(self.loader_train) * epoch)
                 self._writer.add_scalar("Precision/train", torch.sum(prediction == mask).float() / (
-                        prediction.shape[0] * prediction.shape[1]), idx + len(self.loader_train) * epoch)
+                        prediction.shape[0] * prediction.shape[1] * prediction.shape[2]),
+                                        idx + len(self.loader_train) * epoch)
 
             del loss, output,  prediction
             print("\n" + "-" * 50 + "\n")
@@ -120,7 +121,8 @@ class TrainModel:
             self.average_meter_val.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
             self._writer.add_scalar("Loss/validation", loss.item(), epoch_num * len(self.loader_val) + idx)
             self._writer.add_scalar("Precision/validation", torch.sum(prediction == mask).float() / (
-                    prediction.shape[0] * prediction.shape[1]), epoch_num * len(self.loader_val) + idx)
+                    prediction.shape[0] * prediction.shape[1] * prediction.shape[2]),
+                                    epoch_num * len(self.loader_val) + idx)
 
             output_segmented[:, indices[0]: indices[2], indices[1]: indices[3]] += output[0, :, :, :].data
             count_map[indices[0]: indices[2], indices[1]: indices[3]] += 1
@@ -136,7 +138,7 @@ class TrainModel:
     def _initialize(self):
         self.model = available_models[self._config.MODEL](self._config.NUM_CLASSES).to(self.device)
         print(self.model)
-        self.loss = self._config.LOSS(config=self._config)
+        self.loss = self._config.LOSS()
         self.optimizer = self._config.OPTIMALIZER([
             {'params': [param for name, param in self.model.named_parameters() if name[-4:] == 'bias'],
             'lr': 2 * self._config.LEARNING_RATE},
