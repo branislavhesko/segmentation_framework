@@ -10,8 +10,7 @@ import torch
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from config import available_models, Configuration, TickColonSegmentation, \
-    RefugeeDiscSegmentationConfig, RefugeeCupSegmentationConfig, ThyroidConfig, IdridSegmentation
+from config import available_models, Configuration, IdridSegmentation
 from helper_scripts.utils import check_and_make_dirs
 from loaders.get_data_loader import get_data_loaders
 from stats.stats_meter import StatsMeter
@@ -41,7 +40,7 @@ class TrainModel:
         self._initialize()
         self._load_weights_if_available()
         self._visualizer = visualizers[self._config.VISUALIZER](self._config, writer=self._writer)
-        self._logger.info(config.serialize())
+        self._logger.info(config)
 
     def train(self):
         loss, output, prediction = None, None, None
@@ -129,9 +128,9 @@ class TrainModel:
             torch.cuda.empty_cache()
         self._save_segmentation(output_segmented.cpu().numpy(), count_map.cpu().numpy(),
                                 opened.img, opened.mask, path_to_save, idx=idx, epoch=epoch_num)
-        print("\n" + "-" * 50 + "\n")
-        print(self.average_meter_val)
-        print("\n" + "-" * 50 + "\n")
+        self._logger.info("\n" + "-" * 50 + "\n")
+        self._logger.info(self.average_meter_val)
+        self._logger.info("\n" + "-" * 50 + "\n")
         torch.cuda.empty_cache()
         del loss, output_segmented, prediction, count_map
 
@@ -162,7 +161,7 @@ class TrainModel:
     def load_model(self, path_ckpt, opt_path_ckpt):
         self.model.load_state_dict(torch.load(path_ckpt))
         self.optimizer.load_state_dict(torch.load(opt_path_ckpt))
-        print("Model loaded: {}".format(path_ckpt))
+        self._logger.info("Model loaded: {}".format(path_ckpt))
 
     def _load_weights_if_available(self):
         if len(self._config.CHECKPOINT) > 0:

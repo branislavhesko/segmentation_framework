@@ -1,3 +1,4 @@
+import logging
 import pickle
 
 import numpy as np
@@ -36,10 +37,11 @@ class DataLoaderCrop2D:
     def _is_subimage_file_valid(self, path):
         with open(path, "rb") as fp:
             data = pickle.load(fp)
+        logger = logging.getLogger(self.__class__.__name__)
         if data["config"] == self._config.serialize():
-            print("Config is equal to serialized dataset info, allowing loading it!")
+            logger.info("Config is equal to serialized dataset info, allowing loading it!")
             return True
-        print("Config is not equal to serialized dataset info, creating new config!")
+        logger.info("Config is not equal to serialized dataset info, creating new config!")
         return False
 
     def __len__(self):

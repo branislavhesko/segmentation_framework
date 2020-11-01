@@ -106,6 +106,10 @@ class Configuration:
                 output[key] = str(value)
         return output
 
+    def __str__(self):
+        serialized = self.serialize()
+        return "\n".join([f"{key}: {value}" for key, value in serialized.items()])
+
     def process_mask(self, mask):
         mask[mask > 0] = 1
         return mask
