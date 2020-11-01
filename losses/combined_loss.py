@@ -2,7 +2,7 @@ from typing import Any
 
 import torch
 
-from losses.focal_loss_2d import FocalLoss
+from losses.focal_loss import FocalLoss
 
 
 class CombinedLoss(torch.nn.Module):
@@ -14,7 +14,7 @@ class CombinedLoss(torch.nn.Module):
         super(CombinedLoss, self).__init__()
         self._focal_loss_indices = config.FOCAL_LOSS_INDICES
         self._ce_loss_indices = config.CE_LOSS_INDICES
-        self._focal_loss = FocalLoss(apply_nonlin=torch.sigmoid)
+        self._focal_loss = FocalLoss()
         self._ce_loss = torch.nn.CrossEntropyLoss()
 
     def forward(self, output, labels):
