@@ -26,10 +26,12 @@ class VisualizationInterface(metaclass=ABCMeta):
     def process_output(self, *args, **kwargs):
         pass
 
-    def store_prediction(self, prediction):
-        fig, axs = plt.subplots(1, prediction.shape[0], figsize=(10, 3), dpi=100)
+    @staticmethod
+    def store_prediction(prediction):
+        min_, max_ = np.amin(prediction), np.amax(prediction)
+        fig, axs = plt.subplots(1, prediction.shape[0], figsize=(10, 3), dpi=400)
         for idx, ax in enumerate(axs):    
-            ax.imshow(prediction[idx, :, :])
+            ax.imshow(prediction[idx, :, :], vmin=min_, vmax=max_)
         return fig
 
 
@@ -39,7 +41,7 @@ class VisualizationSaveImages(VisualizationInterface):
     
     def process_output(self, prediction, count_map, img_path, mask_path, name, **kwargs):
         img_name = os.path.split(img_path)[1][:-4]
-        gt = self._config.process_mask(cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE))
+        gt = self._config.process_mask(cv2.imread(mask_path, cv2.IMREAD_COLOR))
         img = cv2.imread(img_path, cv2.IMREAD_COLOR)
         prediction = prediction / count_map
         fig = self.store_prediction(prediction)
@@ -52,7 +54,7 @@ class VisualizationSaveImages(VisualizationInterface):
         cv2.imwrite(os.path.join(name, img_name + "_gt.png"), map_palette(
             gt, generate_palette(self._config.NUM_CLASSES)))
         cv2.imwrite(os.path.join(name, img_name + "_img_vs_pred.png"), 
-                show_segmentations_into_original_image(img, prediction))
+                    show_segmentations_into_original_image(img, prediction))
         shutil.copy(img_path, os.path.join(name, img_name + ".png"))
 
 
@@ -68,8 +70,8 @@ class VisualizationTensorboard(VisualizationInterface):
     def process_output(self, prediction, count_map, img_path, mask_path, **kwargs):
         idx = kwargs.pop("idx")
         epoch = kwargs.pop("epoch")
-        gt = self._config.process_mask(cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE))
-        img = cv2.imread(img_path, cv2.IMREAD_COLOR)
+        gt = self._config.process_mask(cv2.imread(mask_path, cv2.IMREAD_COLOR))
+        img = cv2.cvtColor(cv2.imread(img_path, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
         prediction = prediction / count_map
         fig = self.store_prediction(prediction)
         self._writer.add_figure("PredictionMaps_{}".format(idx), fig, global_step=epoch)
@@ -77,12 +79,13 @@ class VisualizationTensorboard(VisualizationInterface):
         prediction_gt = vizualize_segmentation(gt.astype(np.uint8), prediction.astype(np.uint8))
         self._writer.add_image("Prediction/colored_{}".format(idx),
                                torch.from_numpy(map_palette(prediction, generate_palette(
-            self._config.NUM_CLASSES))).permute([2, 0, 1]), global_step=epoch)
+                                   self._config.NUM_CLASSES))).permute([2, 0, 1]), global_step=epoch)
         self._writer.add_image("PredictionVsGroundTruth/colored_{}".format(idx), torch.from_numpy(
             prediction_gt).permute([2, 0, 1]), global_step=epoch)
         self._writer.add_image("Ground_truth/colored_{}".format(idx), torch.from_numpy(map_palette(
             gt, generate_palette(self._config.NUM_CLASSES))).permute([2, 0, 1]), global_step=epoch)
-        self._writer.add_image("OriginalImage/_{}".format(idx), torch.from_numpy(img).permute([2, 0, 1]), global_step=epoch)
+        self._writer.add_image("OriginalImage/_{}".format(idx),
+                               torch.from_numpy(img).permute([2, 0, 1]), global_step=epoch)
         self._writer.add_image("OriginalImageAndPrediction/colored_{}".format(idx), torch.from_numpy(
             show_segmentation_into_original_image(img, prediction)).permute([2, 0, 1]), global_step=epoch)
 

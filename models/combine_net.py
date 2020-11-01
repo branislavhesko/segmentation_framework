@@ -67,7 +67,7 @@ class CombineNet(nn.Module):
         self.dec3 = _DecoderBlock(int(768), 256)
         self.dec2 = _DecoderBlock(int(512), 256)
         self.dec1 = _DecoderBlock(int(384), 256)
-        self.ppm5 = PyramidPoolingModule(2048, 128, (1, 2, 3, 6))
+        self.ppm5 = PyramidPoolingModule(2048, 64, (1, 2, 3, 6))
         self.merge = _MergeBlock(768, num_classes)
         initialize_weights(self.dec5, self.dec4, self.dec3, self.dec2, self.dec1, self.ppm5, self.merge)
 
@@ -95,5 +95,5 @@ class CombineNet(nn.Module):
 
 
 if __name__ == "__main__":
-    net = CombineNet(2).cuda().train()
-    net(torch.rand(4, 3, 512, 512).cuda())
+    net = CombineNet(2).eval()
+    net(torch.rand(1, 3, 512, 512))

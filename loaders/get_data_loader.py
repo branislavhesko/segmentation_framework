@@ -3,7 +3,7 @@ import os
 from torch.utils.data import DataLoader
 
 from config import Configuration, ImagesSubfolder, NetMode
-from loaders.available_datasets import AvailableDatasets
+from datasets.available_datasets import AvailableDatasets
 
 
 def get_data_loaders(config: Configuration):
@@ -15,7 +15,7 @@ def get_data_loaders(config: Configuration):
                                                                   stride=config.STRIDE, transform=config.AUGMENTATION,
                                                                   config=config, mode=NetMode.TRAIN)
     dataloader_val = AvailableDatasets.DATASETS[config.DATASET[NetMode.VALIDATE]](img_files=imgs_val, mask_files=masks_val,
-                                                                crop_size=(config.CROP_SIZE, config.CROP_SIZE),
+                                                                crop_size=(1024, 1024),
                                                                 stride=config.STRIDE_VAL,
                                                                 transform=config.VAL_AUGMENTATION,
                                                                 config=config, mode=NetMode.VALIDATE)

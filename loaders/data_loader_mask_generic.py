@@ -9,6 +9,7 @@ from loaders.subimage_info_holder import InfoEnum, SubImageInfoHolder
 
 
 class DataLoaderCrop2D:
+    MASK_LOAD_TYPE = cv2.IMREAD_COLOR
 
     def __init__(self, img_files, mask_files=(), crop_size=(512, 512),
                  stride=0.1, transform=lambda x: x, config: Configuration = Configuration(), mode=NetMode.VALIDATE):
@@ -46,9 +47,9 @@ class DataLoaderCrop2D:
 
     def __getitem__(self, index):
         info = self.sub_image_info_holder.get_info_at_index(index)
-        img = np.array(cv2.imread(info.img, cv2.IMREAD_COLOR)).astype(np.float32)
+        img = cv2.cvtColor(cv2.imread(info.img, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB).astype(np.float32)
         img = img / 255.
-        mask = cv2.imread(info.mask, cv2.IMREAD_GRAYSCALE)
+        mask = cv2.imread(info.mask, self.MASK_LOAD_TYPE)
         mask = self._config.process_mask(mask)
         data = (*self._transform(*self._crop_image_and_mask(img, mask, info)),
                 info.slice, info.img, info.mask)

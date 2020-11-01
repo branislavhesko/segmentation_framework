@@ -4,13 +4,13 @@ import numpy as np
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 
+from losses.api import FocalTverskyLoss
 from models.combine_net import CombineNet
 from models.deeplab import DeepLab
 from models.psp_net import PSPNet
 from models.refinenet.refinenet_4cascade import RefineNet4Cascade
 from models.unet import UNet
-from utils.learning_rate import adaptive_learning_rate
-from utils.transforms import (Clahe, ComposeTransforms, Normalize, RandomHorizontalFlip, RandomRotate, 
+from utils.transforms import (ComposeTransforms, Normalize, RandomHorizontalFlip, RandomRotate,
                               RandomVerticalFlip, RandomSquaredCrop, ToTensor, Transpose)
 
 
@@ -39,6 +39,8 @@ available_models = {
 
 
 class Configuration:
+    FOCAL_LOSS_INDICES = None
+    CE_LOSS_INDICES = None
     BATCH_SIZE = 2
     CHECKPOINT = ""
     SAVE_FREQUENCY = 4
@@ -56,7 +58,7 @@ class Configuration:
 
     MODEL = "DeepLabV3p"
     NUM_CLASSES = 2
-    NUM_WORKERS = 4
+    NUM_WORKERS = 8
     NUMBER_OF_EPOCHS = 100
     OUTPUT = "ckpt"
     OUTPUT_FOLDER = "polyps"
@@ -93,7 +95,7 @@ class Configuration:
         ImagesSubfolder.IMAGES: "images/*.tif",
         ImagesSubfolder.MASKS: "mask/*.tif"
     }
-    NUM_RANDOM_CROPS_PER_IMAGE = 12
+    NUM_RANDOM_CROPS_PER_IMAGE = 4
     VISUALIZER = "VisualizationSaveImages"
 
     def serialize(self):
@@ -107,6 +109,52 @@ class Configuration:
     def process_mask(self, mask):
         mask[mask > 0] = 1
         return mask
+
+
+class IdridSegmentation(Configuration):
+    LOSS = FocalTverskyLoss
+    CHECKPOINT = ""
+    NUM_CLASSES = 6
+    FOLDER_WITH_IMAGE_DATA = "/home/brani/STORAGE/idrid/A. Segmentation/"
+    FOLDERS = {
+        NetMode.TRAIN: "train",
+        NetMode.VALIDATE: "eval"
+    }
+    SUBFOLDERS = {
+        ImagesSubfolder.IMAGES: "images/*jpg",
+        ImagesSubfolder.MASKS: "masks/*png"
+    }
+    MODEL = "DeepLabV3p"
+    CROP_SIZE = 512
+    COLORS = (
+        [255, 0, 0],
+        [0, 255, 0],
+        [0, 255, 255],
+        [0, 0, 255],
+        [255, 255, 0]
+    )
+    DATASET = {
+        NetMode.TRAIN: "IdridDataset",
+        NetMode.VALIDATE: "DataLoaderCrop2D",
+    }
+    PATH_TO_SAVED_SUBIMAGE_INFO = "/home/brani/STORAGE/idrid/A. Segmentation/eval.pickle"
+    BATCH_SIZE = 4
+    NUM_WORKERS = 8
+    NUM_RANDOM_CROPS_PER_IMAGE = 10
+    STRIDE = 1.
+    STRIDE_VAL = 1.
+    STRIDE_LIMIT = (1000, 1.)
+    OUTPUT_FOLDER = "IDRID"
+    LEARNING_RATE = 1e-3
+    VISUALIZER = "VisualizationTensorboard"
+    FOCAL_LOSS_INDICES = (1, 2, 4)
+    CE_LOSS_INDICES = (0, 3, 5)
+
+    def process_mask(self, mask):
+        output_mask = np.zeros(mask.shape[:2])
+        for idx, color in enumerate(self.COLORS):
+            output_mask[np.all(mask == color, axis=-1)] = idx + 1
+        return output_mask
 
 
 class TickColonSegmentation(Configuration):
