@@ -32,15 +32,11 @@ class StatsMeter:
     
     @property
     def mean_iou(self):
-        if self._number_of_images_passed == 0:
-            return 0
-        return np.mean(self._ious / self._number_of_images_passed)
+        return np.mean(np.divide(self._ious, self._number_of_images_passed))
 
     @property
     def mean_dice(self):
-        if self._number_of_images_passed == 0:
-            return 0
-        return np.mean(self._dices / self._number_of_images_passed)
+        return np.mean(np.divide(self._dices, self._number_of_images_passed))
 
     def update(self, prediction, ground_truth, loss):
         self._sum_of_losses += loss
