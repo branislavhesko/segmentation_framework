@@ -24,7 +24,7 @@ class StatsMeter:
 
     @property
     def mean_loss(self):
-        return self._sum_of_losses / self._number_of_images_passed
+        return self._sum_of_losses / np.amax(self._number_of_images_passed)
 
     @property
     def accuracy(self):
@@ -56,5 +56,5 @@ class StatsMeter:
 
     def __str__(self):
         desc = "NUM_CLASSES{}_mean_loss{:.3f}_accuracy{:.3f}_mean_IOU{:.3f}_mean_DICE{:.3f}".format(
-            self._num_classes, self.mean_loss, self.accuracy, self.mean_iou, self.mean_dice)
+            self._num_classes, self.mean_loss, self.accuracy, np.mean(self.mean_iou), np.mean(self.mean_dice))
         return desc
