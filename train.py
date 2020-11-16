@@ -6,6 +6,7 @@ import os
 from time import time
 
 import cv2
+import numpy as np
 import torch
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
@@ -44,6 +45,8 @@ class TrainModel:
 
     def train(self):
         loss, output, prediction = None, None, None
+        self.validate(-1)
+        exit(-1)
         for epoch in range(self._config.NUMBER_OF_EPOCHS):
             self.model.train()
             self.average_meter_train = StatsMeter(self._config.NUM_CLASSES)
@@ -56,6 +59,24 @@ class TrainModel:
                 mask = mask.to(self.device)
 
                 output = self.model(img)
+                # from matplotlib import pyplot as plt
+                # plt.figure(dpi=150)
+                # plt.subplot(2, 3, 1)
+                # ii = img.cpu().permute([0, 2, 3, 1]).numpy()[0, ...]
+                # ii = (ii - np.amin(ii)) / (np.amax(ii) - np.amin(ii))
+                # plt.imshow(ii)
+                # plt.subplot(2, 3, 2)
+                # plt.imshow(output.detach().cpu().numpy()[0, 1, :, :], vmin=0, vmax=1)
+                # plt.subplot(2, 3, 3)
+                # plt.imshow(output.detach().cpu().numpy()[0, 2, :, :], vmin=0, vmax=1)
+                # plt.subplot(2, 3, 4)
+                # plt.imshow(output.detach().cpu().numpy()[0, 3, :, :], vmin=0, vmax=1)
+                # plt.subplot(2, 3, 5)
+                # plt.imshow(output.detach().cpu().numpy()[0, 4, :, :], vmin=0, vmax=1)
+                # plt.subplot(2, 3, 6)
+                # plt.imshow(output.detach().cpu().numpy()[0, 5, :, :], vmin=0, vmax=1)
+                # plt.savefig(f"{idx}.png", bbox_inches="tight")
+                # plt.close()
                 prediction = torch.argmax(output, dim=1)
                 loss = self.loss(output, mask)
                 loss.backward()
@@ -69,9 +90,10 @@ class TrainModel:
                         prediction.shape[0] * prediction.shape[1] * prediction.shape[2]),
                                         idx + len(self.loader_train) * epoch)
 
-            del loss, output,  prediction
+            del loss, output, prediction
             print("\n" + "-" * 50 + "\n")
             print(self.average_meter_train)
+            print(self.average_meter_train.iou)
             print("\n" + "-" * 50 + "\n")
             if epoch % self._config.VALIDATION_FREQUENCY == 0:
                 torch.cuda.empty_cache()
@@ -82,7 +104,7 @@ class TrainModel:
 
     @torch.no_grad()
     def validate(self, epoch_num=0):
-        self.model.eval()
+        # self.model.eval()
         path_to_save = os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, str(epoch_num) + "_epoch")
         if not os.path.exists(path_to_save):
             os.makedirs(path_to_save)
@@ -111,8 +133,24 @@ class TrainModel:
                 output_segmented = torch.zeros((
                     self._config.NUM_CLASSES, img_shape[0], img_shape[1]), device=self.device)
                 count_map = torch.zeros(img_shape, device=self.device)
-            output = self.model(img)
-
+            output = self.model(torch.cat([img, img], dim=0))[:1, ...]
+            # from matplotlib import pyplot as plt
+            # plt.figure(dpi=150)
+            # plt.subplot(2, 3, 1)
+            # ii = img.cpu().permute([0, 2, 3, 1]).numpy()[0, ...]
+            # ii = (ii - np.amin(ii)) / (np.amax(ii) - np.amin(ii))
+            # plt.imshow(ii)
+            # plt.subplot(2, 3, 2)
+            # plt.imshow(output.detach().cpu().numpy()[0, 1, :, :], vmin=0, vmax=1)
+            # plt.subplot(2, 3, 3)
+            # plt.imshow(output.detach().cpu().numpy()[0, 2, :, :], vmin=0, vmax=1)
+            # plt.subplot(2, 3, 4)
+            # plt.imshow(output.detach().cpu().numpy()[0, 3, :, :], vmin=0, vmax=1)
+            # plt.subplot(2, 3, 5)
+            # plt.imshow(output.detach().cpu().numpy()[0, 4, :, :], vmin=0, vmax=1)
+            # plt.subplot(2, 3, 6)
+            # plt.imshow(output.detach().cpu().numpy()[0, 5, :, :], vmin=0, vmax=1)
+            # plt.savefig(f"v{idx}.png", bbox_inches="tight")
             prediction = torch.argmax(output, dim=1)
             loss = self.loss(output, mask)
 
@@ -130,6 +168,7 @@ class TrainModel:
                                 opened.img, opened.mask, path_to_save, idx=idx, epoch=epoch_num)
         self._logger.info("\n" + "-" * 50 + "\n")
         self._logger.info(self.average_meter_val)
+        self._logger.info(self.average_meter_val.iou)
         self._logger.info("\n" + "-" * 50 + "\n")
         torch.cuda.empty_cache()
         del loss, output_segmented, prediction, count_map

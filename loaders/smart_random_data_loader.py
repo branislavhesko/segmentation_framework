@@ -40,10 +40,10 @@ class SmartRandomDataLoader(Dataset):
         return data
 
     def _crop(self, rand_col, rand_row):
-        image_crop = self._currently_opened.image[rand_row: rand_row + self._crop_size[0],
-                                                  rand_col: rand_col + self._crop_size[1], :]
-        mask_crop = self._currently_opened.mask[rand_row: rand_row + self._crop_size[0],
-                                                rand_col: rand_col + self._crop_size[1]]
+        image_crop = np.copy(self._currently_opened.image[rand_row: rand_row + self._crop_size[0],
+                                                  rand_col: rand_col + self._crop_size[1], :])
+        mask_crop = np.copy(self._currently_opened.mask[rand_row: rand_row + self._crop_size[0],
+                                                rand_col: rand_col + self._crop_size[1]])
         return image_crop, mask_crop
 
     def assign_currently_opened(self, image_id):

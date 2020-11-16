@@ -35,6 +35,10 @@ class StatsMeter:
         return np.mean(np.divide(self._ious, self._number_of_images_passed))
 
     @property
+    def iou(self):
+        return np.divide(self._ious, self._number_of_images_passed)
+
+    @property
     def mean_dice(self):
         return np.mean(np.divide(self._dices, self._number_of_images_passed))
 

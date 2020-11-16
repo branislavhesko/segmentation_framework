@@ -4,7 +4,7 @@ import numpy as np
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 
-from losses.api import FocalTverskyLoss
+from losses.api import DiceBCELoss
 from models.combine_net import CombineNet
 from models.deeplab import DeepLab
 from models.psp_net import PSPNet
@@ -116,10 +116,10 @@ class Configuration:
 
 
 class IdridSegmentation(Configuration):
-    LOSS = FocalTverskyLoss
-    CHECKPOINT = ""
+    LOSS = DiceBCELoss
+    CHECKPOINT = "CombineNet_epoch20__11-16-2020_23_21_48_NUM_CLASSES6_mean_loss0.037_accuracy0.984_mean_IOU0.580_mean_DICE0.679.pth"
     NUM_CLASSES = 6
-    FOLDER_WITH_IMAGE_DATA = "/home/brani/STORAGE/idrid/A. Segmentation/"
+    FOLDER_WITH_IMAGE_DATA = "/home/branislav/other/idrid/A. Segmentation/"
     FOLDERS = {
         NetMode.TRAIN: "train",
         NetMode.VALIDATE: "eval"
@@ -128,7 +128,7 @@ class IdridSegmentation(Configuration):
         ImagesSubfolder.IMAGES: "images/*jpg",
         ImagesSubfolder.MASKS: "masks/*png"
     }
-    MODEL = "DeepLabV3p"
+    MODEL = "CombineNet"
     CROP_SIZE = 512
     COLORS = (
         [255, 0, 0],
@@ -141,16 +141,16 @@ class IdridSegmentation(Configuration):
         NetMode.TRAIN: "IdridDataset",
         NetMode.VALIDATE: "DataLoaderCrop2D",
     }
-    PATH_TO_SAVED_SUBIMAGE_INFO = "/home/brani/STORAGE/idrid/A. Segmentation/eval.pickle"
-    BATCH_SIZE = 4
-    NUM_WORKERS = 8
-    NUM_RANDOM_CROPS_PER_IMAGE = 10
-    STRIDE = 1.
-    STRIDE_VAL = 1.
-    STRIDE_LIMIT = (1000, 1.)
+    PATH_TO_SAVED_SUBIMAGE_INFO = "/home/branislav/other/idrid/A. Segmentation/eval.pickle"
+    BATCH_SIZE = 2
+    NUM_WORKERS = 4
+    NUM_RANDOM_CROPS_PER_IMAGE = 500
+    VALIDATION_FREQUENCY = 5
+    STRIDE = 0.5
+    STRIDE_VAL = 0.5
+    STRIDE_LIMIT = (1000, 0.5)
     OUTPUT_FOLDER = "IDRID"
     LEARNING_RATE = 1e-3
-    VISUALIZER = "VisualizationTensorboard"
     FOCAL_LOSS_INDICES = (1, 2, 4)
     CE_LOSS_INDICES = (0, 3, 5)
 

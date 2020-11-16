@@ -50,9 +50,9 @@ class VisualizationSaveImages(VisualizationInterface):
         prediction_gt = vizualize_segmentation(gt.astype(np.uint8), prediction.astype(np.uint8))
         cv2.imwrite(os.path.join(name, img_name + "gt_vs_pred.png"), prediction_gt)
         cv2.imwrite(os.path.join(name, img_name + "_prediction.png"), map_palette(
-            prediction, generate_palette(self._config.NUM_CLASSES)))        
+            prediction, generate_palette(self._config.NUM_CLASSES)) * 255)        
         cv2.imwrite(os.path.join(name, img_name + "_gt.png"), map_palette(
-            gt, generate_palette(self._config.NUM_CLASSES)))
+            gt, generate_palette(self._config.NUM_CLASSES)) * 255)
         cv2.imwrite(os.path.join(name, img_name + "_img_vs_pred.png"), 
                     show_segmentations_into_original_image(img, prediction))
         shutil.copy(img_path, os.path.join(name, img_name + ".png"))
