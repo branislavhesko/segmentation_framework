@@ -4,6 +4,7 @@ from torchvision import models
 from torch.nn.functional import interpolate
 
 from utils.initialization import initialize_weights
+from models.block_transforms import transform_batchnorm_to_groupnorm
 from models.submodels.pyramid_pooling_module import PyramidPoolingModule
 
 
@@ -53,7 +54,7 @@ class _DecoderBlock(nn.Module):
 
 class CombineNet(nn.Module):
 
-    def __init__(self, num_classes, backbone="resnest50"):
+    def __init__(self, num_classes, backbone="resnest50", use_groupnorm=True):
         super(CombineNet, self).__init__()
         self._backbone_name = backbone
         self.backbone = get_backbone(backbone)
@@ -69,6 +70,9 @@ class CombineNet(nn.Module):
         self.dec1 = _DecoderBlock(int(384), 256)
         self.ppm5 = PyramidPoolingModule(2048, 64, (1, 2, 3, 6))
         self.merge = _MergeBlock(768, num_classes)
+        if use_groupnorm:
+            print("Transforming all BatchNorm layers into GroupNorm layers!")
+            transform_batchnorm_to_groupnorm(self, self)
         initialize_weights(self.dec5, self.dec4, self.dec3, self.dec2, self.dec1, self.ppm5, self.merge)
 
     def forward(self, x):

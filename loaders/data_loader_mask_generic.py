@@ -49,7 +49,7 @@ class DataLoaderCrop2D:
 
     def __getitem__(self, index):
         info = self.sub_image_info_holder.get_info_at_index(index)
-        img = cv2.cvtColor(cv2.imread(info.img, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB).astype(np.float32)
+        img = cv2.cvtColor(cv2.imread(info.img, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
         img = img / 255.
         mask = cv2.imread(info.mask, self.MASK_LOAD_TYPE)
         mask = self._config.process_mask(mask)
@@ -61,11 +61,11 @@ class DataLoaderCrop2D:
     def _crop_image_and_mask(img, mask, info):
         slice_ = info.slice
         if len(img.shape) > 2: 
-            return (img[slice_[0]: slice_[2], slice_[1]: slice_[3], :],
-                    mask[slice_[0]: slice_[2], slice_[1]: slice_[3]])
+            return (np.copy(img[slice_[0]: slice_[2], slice_[1]: slice_[3], :]),
+                    np.copy(mask[slice_[0]: slice_[2], slice_[1]: slice_[3]]))
         else:
-            return (img[slice_[0]: slice_[2], slice_[1]: slice_[3]],
-                    mask[slice_[0]: slice_[2], slice_[1]: slice_[3]])
+            return (np.copy(img[slice_[0]: slice_[2], slice_[1]: slice_[3]]),
+                    np.copy(mask[slice_[0]: slice_[2], slice_[1]: slice_[3]]))
 
 
 def reconstruct_image(subimages, indices, original_shape, count_map=None):

@@ -72,7 +72,6 @@ class Configuration:
     MOMENTUM = 0.9
     WEIGHT_DECAY = 1e-4
     AUGMENTATION = ComposeTransforms([
-        Normalize(DataProps.MEAN, DataProps.STD),
         RandomRotate(0.6),
         RandomSquaredCrop(0.85),
         RandomHorizontalFlip(),
@@ -81,7 +80,6 @@ class Configuration:
         ToTensor()
     ])
     VAL_AUGMENTATION = ComposeTransforms([
-        Normalize(DataProps.MEAN, DataProps.STD),
         Transpose(),
         ToTensor()
     ])
@@ -117,7 +115,7 @@ class Configuration:
 
 class IdridSegmentation(Configuration):
     LOSS = DiceBCELoss
-    CHECKPOINT = "CombineNet_epoch20__11-16-2020_23_21_48_NUM_CLASSES6_mean_loss0.037_accuracy0.984_mean_IOU0.580_mean_DICE0.679.pth"
+    CHECKPOINT = "CombineNet_epoch4__11-20-2020_22_44_30_NUM_CLASSES6_mean_loss0.059_accuracy0.976_mean_IOU0.421_mean_DICE0.488.pth"
     NUM_CLASSES = 6
     FOLDER_WITH_IMAGE_DATA = "/home/branislav/other/idrid/A. Segmentation/"
     FOLDERS = {
@@ -145,11 +143,11 @@ class IdridSegmentation(Configuration):
     BATCH_SIZE = 2
     NUM_WORKERS = 4
     NUM_RANDOM_CROPS_PER_IMAGE = 500
-    VALIDATION_FREQUENCY = 5
-    STRIDE = 0.5
-    STRIDE_VAL = 0.5
-    STRIDE_LIMIT = (1000, 0.5)
-    OUTPUT_FOLDER = "IDRID"
+    VALIDATION_FREQUENCY = 2
+    STRIDE = 1.0
+    STRIDE_VAL = 1.0
+    STRIDE_LIMIT = (1000, 1.0)
+    OUTPUT_FOLDER = "IDRID_CombineNet_groupnorm"
     LEARNING_RATE = 1e-3
     FOCAL_LOSS_INDICES = (1, 2, 4)
     CE_LOSS_INDICES = (0, 3, 5)

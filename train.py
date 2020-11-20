@@ -45,8 +45,6 @@ class TrainModel:
 
     def train(self):
         loss, output, prediction = None, None, None
-        self.validate(-1)
-        exit(-1)
         for epoch in range(self._config.NUMBER_OF_EPOCHS):
             self.model.train()
             self.average_meter_train = StatsMeter(self._config.NUM_CLASSES)
@@ -59,7 +57,7 @@ class TrainModel:
                 mask = mask.to(self.device)
 
                 output = self.model(img)
-                # from matplotlib import pyplot as plt
+
                 # plt.figure(dpi=150)
                 # plt.subplot(2, 3, 1)
                 # ii = img.cpu().permute([0, 2, 3, 1]).numpy()[0, ...]
@@ -104,7 +102,7 @@ class TrainModel:
 
     @torch.no_grad()
     def validate(self, epoch_num=0):
-        # self.model.eval()
+        self.model.eval()
         path_to_save = os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, str(epoch_num) + "_epoch")
         if not os.path.exists(path_to_save):
             os.makedirs(path_to_save)
@@ -117,7 +115,6 @@ class TrainModel:
         image_id = 0
         for idx, data in enumerate(tqdm(self.loader_val)):
             img, mask, indices, img_path, mask_path = data
-
             img = img.to(self.device)
             mask = mask.to(self.device)
 
@@ -133,7 +130,7 @@ class TrainModel:
                 output_segmented = torch.zeros((
                     self._config.NUM_CLASSES, img_shape[0], img_shape[1]), device=self.device)
                 count_map = torch.zeros(img_shape, device=self.device)
-            output = self.model(torch.cat([img, img], dim=0))[:1, ...]
+            output = self.model(img)
             # from matplotlib import pyplot as plt
             # plt.figure(dpi=150)
             # plt.subplot(2, 3, 1)

@@ -5,11 +5,12 @@ from models.deeplabv3p.sync_batchnorm.batchnorm import SynchronizedBatchNorm2d
 from models.deeplabv3p.aspp import build_aspp
 from models.deeplabv3p.decoder import build_decoder
 from models.deeplabv3p.backbone import build_backbone
+from models.block_transforms import transform_batchnorm_to_groupnorm
 
 
 class DeepLab(nn.Module):
     def __init__(self, num_classes=21, backbone='resnet', output_stride=16,
-                 sync_bn=True, freeze_bn=False):
+                 sync_bn=True, freeze_bn=True):
         super(DeepLab, self).__init__()
         if backbone == 'drn':
             output_stride = 8
@@ -22,7 +23,8 @@ class DeepLab(nn.Module):
         self.backbone = build_backbone(backbone, output_stride, BatchNorm)
         self.aspp = build_aspp(backbone, output_stride, BatchNorm)
         self.decoder = build_decoder(num_classes, backbone, BatchNorm)
-
+        transform_batchnorm_to_groupnorm(self, self)
+        print(super().__str__())
         if freeze_bn:
             self.freeze_bn()
 
@@ -64,11 +66,10 @@ class DeepLab(nn.Module):
     def __str__(self):
         return "DeepLabv3p"
 
+
 if __name__ == "__main__":
     model = DeepLab(backbone='mobilenet', output_stride=16)
     model.eval()
     input = torch.rand(1, 3, 513, 513)
     output = model(input)
     print(output.size())
-
-
