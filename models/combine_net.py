@@ -1,3 +1,5 @@
+import logging
+
 import torch
 from torch import nn
 from torchvision import models
@@ -71,7 +73,7 @@ class CombineNet(nn.Module):
         self.ppm5 = PyramidPoolingModule(2048, 64, (1, 2, 3, 6))
         self.merge = _MergeBlock(768, num_classes)
         if use_groupnorm:
-            print("Transforming all BatchNorm layers into GroupNorm layers!")
+            logging.getLogger(self.__class__.__name__).warning("Transforming all BatchNorm layers into GroupNorm layers!")
             transform_batchnorm_to_groupnorm(self, self)
         initialize_weights(self.dec5, self.dec4, self.dec3, self.dec2, self.dec1, self.ppm5, self.merge)
 

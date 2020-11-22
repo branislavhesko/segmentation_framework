@@ -1,6 +1,7 @@
 from enum import Enum
 
 import numpy as np
+import torch
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 
@@ -114,8 +115,11 @@ class Configuration:
 
 
 class IdridSegmentation(Configuration):
-    LOSS = DiceBCELoss
-    CHECKPOINT = "CombineNet_epoch4__11-20-2020_22_44_30_NUM_CLASSES6_mean_loss0.059_accuracy0.976_mean_IOU0.421_mean_DICE0.488.pth"
+    LOSS = CrossEntropyLoss
+    LOSS_PARAMS = {
+        "weight": torch.tensor([1., 10. , 5., 5., 10., 2.]).to("cuda") / 33.
+    }
+    CHECKPOINT = "CombineNet_epoch6__11-22-2020_14_26_01_NUM_CLASSES6_mean_loss0.044_accuracy0.981_mean_IOU0.540_mean_DICE0.641.pth"
     NUM_CLASSES = 6
     FOLDER_WITH_IMAGE_DATA = "/home/branislav/other/idrid/A. Segmentation/"
     FOLDERS = {

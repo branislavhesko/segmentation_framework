@@ -57,24 +57,6 @@ class TrainModel:
                 mask = mask.to(self.device)
 
                 output = self.model(img)
-
-                # plt.figure(dpi=150)
-                # plt.subplot(2, 3, 1)
-                # ii = img.cpu().permute([0, 2, 3, 1]).numpy()[0, ...]
-                # ii = (ii - np.amin(ii)) / (np.amax(ii) - np.amin(ii))
-                # plt.imshow(ii)
-                # plt.subplot(2, 3, 2)
-                # plt.imshow(output.detach().cpu().numpy()[0, 1, :, :], vmin=0, vmax=1)
-                # plt.subplot(2, 3, 3)
-                # plt.imshow(output.detach().cpu().numpy()[0, 2, :, :], vmin=0, vmax=1)
-                # plt.subplot(2, 3, 4)
-                # plt.imshow(output.detach().cpu().numpy()[0, 3, :, :], vmin=0, vmax=1)
-                # plt.subplot(2, 3, 5)
-                # plt.imshow(output.detach().cpu().numpy()[0, 4, :, :], vmin=0, vmax=1)
-                # plt.subplot(2, 3, 6)
-                # plt.imshow(output.detach().cpu().numpy()[0, 5, :, :], vmin=0, vmax=1)
-                # plt.savefig(f"{idx}.png", bbox_inches="tight")
-                # plt.close()
                 prediction = torch.argmax(output, dim=1)
                 loss = self.loss(output, mask)
                 loss.backward()
@@ -131,23 +113,6 @@ class TrainModel:
                     self._config.NUM_CLASSES, img_shape[0], img_shape[1]), device=self.device)
                 count_map = torch.zeros(img_shape, device=self.device)
             output = self.model(img)
-            # from matplotlib import pyplot as plt
-            # plt.figure(dpi=150)
-            # plt.subplot(2, 3, 1)
-            # ii = img.cpu().permute([0, 2, 3, 1]).numpy()[0, ...]
-            # ii = (ii - np.amin(ii)) / (np.amax(ii) - np.amin(ii))
-            # plt.imshow(ii)
-            # plt.subplot(2, 3, 2)
-            # plt.imshow(output.detach().cpu().numpy()[0, 1, :, :], vmin=0, vmax=1)
-            # plt.subplot(2, 3, 3)
-            # plt.imshow(output.detach().cpu().numpy()[0, 2, :, :], vmin=0, vmax=1)
-            # plt.subplot(2, 3, 4)
-            # plt.imshow(output.detach().cpu().numpy()[0, 3, :, :], vmin=0, vmax=1)
-            # plt.subplot(2, 3, 5)
-            # plt.imshow(output.detach().cpu().numpy()[0, 4, :, :], vmin=0, vmax=1)
-            # plt.subplot(2, 3, 6)
-            # plt.imshow(output.detach().cpu().numpy()[0, 5, :, :], vmin=0, vmax=1)
-            # plt.savefig(f"v{idx}.png", bbox_inches="tight")
             prediction = torch.argmax(output, dim=1)
             loss = self.loss(output, mask)
 
@@ -173,7 +138,7 @@ class TrainModel:
     def _initialize(self):
         self.model = available_models[self._config.MODEL](self._config.NUM_CLASSES).to(self.device)
         print(self.model)
-        self.loss = self._config.LOSS()
+        self.loss = self._config.LOSS(**self._config.LOSS_PARAMS)
         self.optimizer = self._config.OPTIMALIZER([
             {'params': [param for name, param in self.model.named_parameters() if name[-4:] == 'bias'],
             'lr': 2 * self._config.LEARNING_RATE},
