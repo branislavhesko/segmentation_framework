@@ -56,7 +56,7 @@ class StatsMeter:
             self._ious[class_num] += iou
             self._dices[class_num] += dice
             self.last_iou[class_num] = iou
-            self._number_of_images_passed[class_num] += prediction.shape[0]
+            self._number_of_images_passed[class_num] += 1
 
     def __str__(self):
         desc = "NUM_CLASSES{}_mean_loss{:.3f}_accuracy{:.3f}_mean_IOU{:.3f}_mean_DICE{:.3f}".format(

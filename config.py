@@ -3,7 +3,7 @@ from enum import Enum
 import numpy as np
 import torch
 from torch.nn import CrossEntropyLoss
-from torch.optim import SGD
+from torch.optim import Adam
 
 from losses.api import DiceBCELoss
 from models.combine_net import CombineNet
@@ -67,7 +67,7 @@ class Configuration:
     STRIDE_VAL = 0.5
     STRIDE_LIMIT = (1000, 0.5)  # THIS PREVENTS DATASET HALTING
     
-    OPTIMALIZER = SGD
+    OPTIMALIZER = Adam
     VALIDATION_FREQUENCY = 1  # num epochs
     
     MOMENTUM = 0.9
@@ -117,9 +117,9 @@ class Configuration:
 class IdridSegmentation(Configuration):
     LOSS = CrossEntropyLoss
     LOSS_PARAMS = {
-        "weight": torch.tensor([1., 10. , 5., 5., 10., 2.]).to("cuda") / 33.
+        "weight": torch.tensor([1., 2. , 2., 2., 2., 1.]).to("cuda") / 10.
     }
-    CHECKPOINT = "CombineNet_epoch6__11-22-2020_14_26_01_NUM_CLASSES6_mean_loss0.044_accuracy0.981_mean_IOU0.540_mean_DICE0.641.pth"
+    CHECKPOINT = "CombineNet_epoch20__12-08-2020_17_47_03_NUM_CLASSES6_mean_loss0.082_accuracy0.982_mean_IOU0.545_mean_DICE0.648.pth"
     NUM_CLASSES = 6
     FOLDER_WITH_IMAGE_DATA = "/home/branislav/other/idrid/A. Segmentation/"
     FOLDERS = {
@@ -146,13 +146,13 @@ class IdridSegmentation(Configuration):
     PATH_TO_SAVED_SUBIMAGE_INFO = "/home/branislav/other/idrid/A. Segmentation/eval.pickle"
     BATCH_SIZE = 2
     NUM_WORKERS = 4
-    NUM_RANDOM_CROPS_PER_IMAGE = 500
-    VALIDATION_FREQUENCY = 2
+    NUM_RANDOM_CROPS_PER_IMAGE = 200
+    VALIDATION_FREQUENCY = 5
     STRIDE = 1.0
     STRIDE_VAL = 1.0
     STRIDE_LIMIT = (1000, 1.0)
     OUTPUT_FOLDER = "IDRID_CombineNet_groupnorm"
-    LEARNING_RATE = 1e-3
+    LEARNING_RATE = 1e-4
     FOCAL_LOSS_INDICES = (1, 2, 4)
     CE_LOSS_INDICES = (0, 3, 5)
 
@@ -164,7 +164,7 @@ class IdridSegmentation(Configuration):
 
 
 class TickColonSegmentation(Configuration):
-    CHECKPOINT = "CombineNet_epoch84__03-14-2020_09_43_01_NUM_CLASSES2_mean_loss0.068_accuracy0.975_mean_IOU0.888_mean_DICE0.926.pth"
+    CHECKPOINT = ""
     NUM_CLASSES = 2
     OUTPUT_FOLDER = "tick"
     DATASET = "TickDataLoaderCrop2D"

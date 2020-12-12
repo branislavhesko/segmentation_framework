@@ -15,7 +15,7 @@ def get_data_loaders(config: Configuration):
                                                                   stride=config.STRIDE, transform=config.AUGMENTATION,
                                                                   config=config, mode=NetMode.TRAIN)
     dataloader_val = AvailableDatasets.DATASETS[config.DATASET[NetMode.VALIDATE]](img_files=imgs_val, mask_files=masks_val,
-                                                                crop_size=(1024, 1024),
+                                                                crop_size=(512, 512),
                                                                 stride=config.STRIDE_VAL,
                                                                 transform=config.VAL_AUGMENTATION,
                                                                 config=config, mode=NetMode.VALIDATE)

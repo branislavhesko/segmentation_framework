@@ -45,6 +45,7 @@ class TrainModel:
 
     def train(self):
         loss, output, prediction = None, None, None
+        self.validate(-1)
         for epoch in range(self._config.NUMBER_OF_EPOCHS):
             self.model.train()
             self.average_meter_train = StatsMeter(self._config.NUM_CLASSES)
@@ -137,14 +138,10 @@ class TrainModel:
 
     def _initialize(self):
         self.model = available_models[self._config.MODEL](self._config.NUM_CLASSES).to(self.device)
-        print(self.model)
+        self._logger.info(self.model)
         self.loss = self._config.LOSS(**self._config.LOSS_PARAMS)
-        self.optimizer = self._config.OPTIMALIZER([
-            {'params': [param for name, param in self.model.named_parameters() if name[-4:] == 'bias'],
-            'lr': 2 * self._config.LEARNING_RATE},
-            {'params': [param for name, param in self.model.named_parameters() if name[-4:] != 'bias'],
-            'lr': self._config.LEARNING_RATE, 'weight_decay': self._config.WEIGHT_DECAY}
-            ], momentum=self._config.MOMENTUM, nesterov=True)
+        self.optimizer = self._config.OPTIMALIZER(
+            self.model.parameters(), lr=self._config.LEARNING_RATE, weight_decay=self._config.WEIGHT_DECAY)
         self.loader_train, self.loader_val = get_data_loaders(self._config)
         check_and_make_dirs(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER))
        
@@ -161,7 +158,10 @@ class TrainModel:
         
     def load_model(self, path_ckpt, opt_path_ckpt):
         self.model.load_state_dict(torch.load(path_ckpt))
-        self.optimizer.load_state_dict(torch.load(opt_path_ckpt))
+        try:
+            self.optimizer.load_state_dict(torch.load(opt_path_ckpt))
+        except ValueError:
+            self._logger.warning("Could not load optimizer!")
         self._logger.info("Model loaded: {}".format(path_ckpt))
 
     def _load_weights_if_available(self):
