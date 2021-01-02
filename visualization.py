@@ -46,6 +46,7 @@ class VisualizationSaveImages(VisualizationInterface):
         prediction = prediction / count_map
         fig = self.store_prediction(prediction)
         fig.savefig(os.path.join(name, img_name + "_maps.png"), bbox_inches="tight")
+        plt.close()
         prediction = np.argmax(prediction, axis=0)
         prediction_gt = vizualize_segmentation(gt.astype(np.uint8), prediction.astype(np.uint8))
         cv2.imwrite(os.path.join(name, img_name + "gt_vs_pred.png"), prediction_gt)
@@ -75,6 +76,7 @@ class VisualizationTensorboard(VisualizationInterface):
         prediction = prediction / count_map
         fig = self.store_prediction(prediction)
         self._writer.add_figure("PredictionMaps_{}".format(idx), fig, global_step=epoch)
+        plt.close()
         prediction = np.argmax(prediction, axis=0)
         prediction_gt = vizualize_segmentation(gt.astype(np.uint8), prediction.astype(np.uint8))
         self._writer.add_image("Prediction/colored_{}".format(idx),

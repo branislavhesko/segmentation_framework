@@ -7,6 +7,7 @@ class FocalTverskyLoss(nn.Module):
     ALPHA = 0.5
     BETA = 0.5
     GAMMA = 1
+    EPS = 1e-5
 
     def __init__(self, weight=None, size_average=True):
         super(FocalTverskyLoss, self).__init__()
@@ -26,9 +27,8 @@ class FocalTverskyLoss(nn.Module):
         tp = (inputs * targets).sum()
         fp = ((1 - targets) * inputs).sum()
         fn = (targets * (1 - inputs)).sum()
-
-        tversky = (tp + smooth) / (tp + alpha * fp + beta * fn + smooth)
-        focal_tversky = (1 - tversky) ** gamma
+        tversky = (tp + smooth) / (tp + alpha * fp + beta * fn + smooth + self.EPS)
+        focal_tversky = (1 - tversky + self.EPS) ** gamma
 
         return focal_tversky
 

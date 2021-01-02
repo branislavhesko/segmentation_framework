@@ -45,7 +45,6 @@ class TrainModel:
 
     def train(self):
         loss, output, prediction = None, None, None
-        self.validate(-1)
         for epoch in range(self._config.NUMBER_OF_EPOCHS):
             self.model.train()
             self.average_meter_train = StatsMeter(self._config.NUM_CLASSES)
@@ -58,8 +57,10 @@ class TrainModel:
                 mask = mask.to(self.device)
 
                 output = self.model(img)
+                loss = sum([self.loss(o, mask) for o in output])
+                output = output[0]
                 prediction = torch.argmax(output, dim=1)
-                loss = self.loss(output, mask)
+
                 loss.backward()
                 self.optimizer.step()
                 tqdm_loader.set_description("Last IOU: {}, INFERENCE time: {:.2f}, LOSS: {:.2f}".format(
@@ -114,8 +115,9 @@ class TrainModel:
                     self._config.NUM_CLASSES, img_shape[0], img_shape[1]), device=self.device)
                 count_map = torch.zeros(img_shape, device=self.device)
             output = self.model(img)
+            loss = sum([self.loss(o, mask) for o in output])
+            output = output[0]
             prediction = torch.argmax(output, dim=1)
-            loss = self.loss(output, mask)
 
             # TODO: print val stats...
             self.average_meter_val.update(prediction.cpu().numpy(), mask.cpu().numpy(), loss.item())
@@ -141,7 +143,8 @@ class TrainModel:
         self._logger.info(self.model)
         self.loss = self._config.LOSS(**self._config.LOSS_PARAMS)
         self.optimizer = self._config.OPTIMALIZER(
-            self.model.parameters(), lr=self._config.LEARNING_RATE, weight_decay=self._config.WEIGHT_DECAY)
+            self.model.parameters(), lr=self._config.LEARNING_RATE, momentum=0.95,
+            weight_decay=self._config.WEIGHT_DECAY, nesterov=True)
         self.loader_train, self.loader_val = get_data_loaders(self._config)
         check_and_make_dirs(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER))
        
@@ -155,13 +158,14 @@ class TrainModel:
         filename = str(self._config.MODEL) + epoch_str + now + str(self.average_meter_val) + ".pth"
         torch.save(self.model.state_dict(), os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, filename))
         torch.save(self.optimizer.state_dict(), os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, "opt_" + filename))
-        
+        self.average_meter_val.save(os.path.join(self._config.OUTPUT, self._config.OUTPUT_FOLDER, filename[:-4] + ".txt"))
+
     def load_model(self, path_ckpt, opt_path_ckpt):
         self.model.load_state_dict(torch.load(path_ckpt))
-        try:
-            self.optimizer.load_state_dict(torch.load(opt_path_ckpt))
-        except ValueError:
-            self._logger.warning("Could not load optimizer!")
+        # try:
+        #     self.optimizer.load_state_dict(torch.load(opt_path_ckpt))
+        # except ValueError:
+        #     self._logger.warning("Could not load optimizer!")
         self._logger.info("Model loaded: {}".format(path_ckpt))
 
     def _load_weights_if_available(self):

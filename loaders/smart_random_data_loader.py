@@ -16,7 +16,9 @@ class SmartRandomDataLoader(Dataset):
                  crop_size, transforms, **_):
         self._config = config
         self._img_files = img_files
+        self._imgs = [cv2.cvtColor(cv2.imread(img_file, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB).astype(np.float32) / 255. for img_file in self._img_files]
         self._mask_files = mask_files
+        self._masks = [self._config.process_mask(cv2.imread(mask, self.MASK_LOAD_TYPE)) for mask in self._mask_files]
         self._crop_size = crop_size
         self._transforms = transforms
         self._num_random_crops = self._config.NUM_RANDOM_CROPS_PER_IMAGE
@@ -48,9 +50,8 @@ class SmartRandomDataLoader(Dataset):
 
     def assign_currently_opened(self, image_id):
         self._currently_opened = CurrentlyOpened(
-            image=cv2.cvtColor(cv2.imread(
-                self._img_files[image_id], cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB).astype(np.float32) / 255.,
-            mask=self._config.process_mask(cv2.imread(self._mask_files[image_id], self.MASK_LOAD_TYPE)),
+            image=self._imgs[image_id],
+            mask=self._masks[image_id],
             id=image_id
         )
 

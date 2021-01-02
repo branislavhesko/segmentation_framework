@@ -39,6 +39,10 @@ class StatsMeter:
         return np.divide(self._ious, self._number_of_images_passed)
 
     @property
+    def dice(self):
+        return np.divide(self._dices, self._number_of_images_passed)
+
+    @property
     def mean_dice(self):
         return np.mean(np.divide(self._dices, self._number_of_images_passed))
 
@@ -57,6 +61,17 @@ class StatsMeter:
             self._dices[class_num] += dice
             self.last_iou[class_num] = iou
             self._number_of_images_passed[class_num] += 1
+
+    def save(self, filename):
+        lines = [
+            "DICES: " + str(self.dice.tolist()) + "\n", 
+            "IOUS: " + str(self.iou.tolist()) + "\n", 
+            "LOSS: " + str(self.mean_loss) + "\n",
+            "MEAN_IOU: " + str(self.mean_iou) + "\n",
+            "MEAN_DICE: " + str(self.mean_dice) + "\n"
+        ]
+        with open(filename, "w") as fp:
+            fp.writelines(lines)
 
     def __str__(self):
         desc = "NUM_CLASSES{}_mean_loss{:.3f}_accuracy{:.3f}_mean_IOU{:.3f}_mean_DICE{:.3f}".format(

@@ -9,4 +9,4 @@ def transform_batchnorm_to_groupnorm(model, block):
         if isinstance(p, torch.nn.Module):
             transform_batchnorm_to_groupnorm(model, p)
         if isinstance(p, nn.BatchNorm2d) or isinstance(p, SynchronizedBatchNorm2d):
-            setattr(block, name, nn.GroupNorm(16, p.num_features))
+            setattr(block, name, nn.GroupNorm(8, p.num_features))
